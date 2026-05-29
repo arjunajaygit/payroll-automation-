@@ -1,65 +1,250 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { useDropzone } from "react-dropzone";
+import Papa from "papaparse";
+
+// Type Definitions based on your exact schema
+type EmployeeRecord = {
+  employeeId: string;
+  name: string;
+  email: string;
+  designation: string;
+  birthYear: number;
+};
+
+type MergedPayroll = EmployeeRecord & {
+  baseSalary: number;
+  hra: number;
+  allowances: number;
+  deductions: number;
+  month: string;
+  year: number;
+  netSalary: number;
+};
+
+export default function Dashboard() {
+  const [employeeDB, setEmployeeDB] = useState<EmployeeRecord[]>([]);
+  const [payroll, setPayroll] = useState<MergedPayroll[]>([]);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // CSV Download Helpers
+  const downloadEmployeeSample = () => {
+    const csvContent = "data:text/csv;charset=utf-8,employeeId,name,email,designation,birthYear\nEMP001,Arjun,arjun@example.com,Software Engineer,2003\nEMP002,Rahul,rahul@example.com,UI Designer,2002";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "employees_master.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  const downloadSalarySample = () => {
+    const csvContent = "data:text/csv;charset=utf-8,employeeId,baseSalary,hra,allowances,deductions,month,year\nEMP001,50000,10000,5000,2000,May,2026\nEMP002,45000,8000,3000,1000,May,2026";
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "salary_may_2026.csv");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
+  // Upload Handlers
+  const onDropMaster = (acceptedFiles: File[]) => {
+    Papa.parse(acceptedFiles[0], {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        setEmployeeDB(results.data as EmployeeRecord[]);
+        setStep(2); // Move to Step 2
+      },
+    });
+  };
+
+  const onDropSalary = (acceptedFiles: File[]) => {
+    setErrors([]);
+    Papa.parse(acceptedFiles[0], {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        const mergedData: MergedPayroll[] = [];
+        const newErrors: string[] = [];
+
+        results.data.forEach((salaryRow: any) => {
+          const dbRecord = employeeDB.find((emp) => emp.employeeId === salaryRow.employeeId);
+
+          if (dbRecord) {
+            mergedData.push({
+              ...dbRecord,
+              baseSalary: salaryRow.baseSalary,
+              hra: salaryRow.hra,
+              allowances: salaryRow.allowances,
+              deductions: salaryRow.deductions,
+              month: salaryRow.month,
+              year: salaryRow.year,
+              netSalary: (salaryRow.baseSalary + salaryRow.hra + salaryRow.allowances) - salaryRow.deductions,
+            });
+          } else {
+            newErrors.push(`ID ${salaryRow.employeeId} not found in Master Database.`);
+          }
+        });
+
+        setPayroll(mergedData);
+        if (newErrors.length > 0) setErrors(newErrors);
+      },
+    });
+  };
+
+  const handleGenerateAndSend = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch("/api/payroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payrollData: payroll }),
+      });
+
+      if (response.ok) {
+        alert("Success! Check your VS Code terminal to see the backend logs.");
+      } else {
+        alert("Something went wrong.");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const dropzoneMaster = useDropzone({ onDrop: onDropMaster, accept: { "text/csv": [".csv"] } });
+  const dropzoneSalary = useDropzone({ onDrop: onDropSalary, accept: { "text/csv": [".csv"] } });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="min-h-screen bg-gray-50 p-8 text-black">
+      <div className="max-w-5xl mx-auto space-y-8">
+        
+        {/* Header with Reset Button */}
+        <div className="flex justify-between items-end">
+          <h1 className="text-3xl font-bold">Smart Payroll Automation</h1>
+          {payroll.length > 0 && (
+            <button 
+              onClick={() => { setEmployeeDB([]); setPayroll([]); setStep(1); setErrors([]); }} 
+              className="text-sm text-red-500 font-medium hover:underline transition"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+              Reset All Data
+            </button>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        {/* STEP 1: Master Upload (Hidden when Final Preview is visible) */}
+        {payroll.length === 0 && (
+          <div className={`p-6 bg-white rounded-lg shadow border-l-4 ${step === 1 ? 'border-blue-600' : 'border-green-500'}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Step 1: Upload Employee Master</h2>
+              <button onClick={downloadEmployeeSample} className="text-sm text-blue-600 hover:underline">Download Sample CSV</button>
+            </div>
+            
+            {employeeDB.length === 0 ? (
+              <div {...dropzoneMaster.getRootProps()} className="border-2 border-dashed border-gray-300 p-8 text-center cursor-pointer hover:bg-gray-50 transition">
+                <input {...dropzoneMaster.getInputProps()} />
+                <p>Drag & drop the employees_master.csv here</p>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center">
+                <p className="text-green-600 font-medium">✅ Master Database Loaded ({employeeDB.length} employees)</p>
+                <button onClick={() => { setEmployeeDB([]); setStep(1); }} className="text-sm text-gray-500 hover:underline">
+                  Re-upload Master
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STEP 2: Salary Upload */}
+        {step === 2 && (
+          <div className={`p-6 bg-white rounded-lg shadow border-l-4 ${payroll.length > 0 ? 'border-gray-300' : 'border-blue-600'}`}>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className={`font-semibold ${payroll.length > 0 ? 'text-lg text-gray-600' : 'text-xl'}`}>
+                {payroll.length > 0 ? "Need to modify this month's salary data?" : "Step 2: Upload Monthly Salary"}
+              </h2>
+              {payroll.length === 0 && (
+                <button onClick={downloadSalarySample} className="text-sm text-blue-600 hover:underline">Download Sample CSV</button>
+              )}
+            </div>
+            
+            <div {...dropzoneSalary.getRootProps()} className={`border-2 border-dashed text-center cursor-pointer transition ${payroll.length > 0 ? 'p-4 border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100' : 'p-8 border-gray-300 hover:bg-gray-50'}`}>
+              <input {...dropzoneSalary.getInputProps()} />
+              <p>{payroll.length > 0 ? "Drag & drop a new salary_month.csv here to overwrite the table below" : "Drag & drop the salary_month.csv here"}</p>
+            </div>
+          </div>
+        )}
+
+        {/* ERRORS */}
+        {errors.length > 0 && (
+          <div className="p-4 bg-red-100 text-red-700 rounded-lg shadow-sm border border-red-200">
+            <strong className="font-semibold">Validation Errors:</strong>
+            <ul className="list-disc ml-5 mt-2 space-y-1 text-sm">
+              {errors.map((err, i) => <li key={i}>{err}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {/* PREVIEW TABLE */}
+        {payroll.length > 0 && (
+           <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
+             <div className="p-4 bg-gray-100 border-b flex justify-between items-center">
+               <div>
+                 <h2 className="font-semibold text-lg text-gray-800">Final Payroll Preview</h2>
+                 <p className="text-sm text-gray-500">Review all details before generating {payroll.length} salary slips.</p>
+               </div>
+               <button onClick={handleGenerateAndSend} className="bg-blue-600 text-white px-6 py-2 rounded-md shadow hover:bg-blue-700 transition font-medium disabled:opacity-60 disabled:cursor-not-allowed" disabled={isProcessing}>
+                 {isProcessing ? "Processing..." : "Generate PDFs & Send Emails"}
+               </button>
+             </div>
+             
+             <div className="overflow-x-auto">
+               <table className="w-full text-left text-sm whitespace-nowrap">
+                 <thead className="bg-gray-50 border-b">
+                   <tr>
+                     <th className="p-4 font-semibold text-gray-600">ID</th>
+                     <th className="p-4 font-semibold text-gray-600">Employee Details</th>
+                     <th className="p-4 font-semibold text-gray-600">Period</th>
+                     <th className="p-4 font-semibold text-gray-600">Base</th>
+                     <th className="p-4 font-semibold text-gray-600">HRA</th>
+                     <th className="p-4 font-semibold text-gray-600">Allowances</th>
+                     <th className="p-4 font-semibold text-gray-600">Deductions</th>
+                     <th className="p-4 font-bold text-blue-600">Net Salary</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {payroll.map((emp, i) => (
+                     <tr key={i} className="border-b hover:bg-gray-50 transition">
+                       <td className="p-4 text-gray-600">{emp.employeeId}</td>
+                       <td className="p-4">
+                         <div className="font-medium text-gray-900">{emp.name}</div>
+                         <div className="text-xs text-gray-500">{emp.designation}</div>
+                         <div className="text-xs text-blue-500">{emp.email}</div>
+                       </td>
+                       <td className="p-4 text-gray-600">{emp.month} {emp.year}</td>
+                       <td className="p-4">₹{emp.baseSalary}</td>
+                       <td className="p-4">₹{emp.hra}</td>
+                       <td className="p-4">₹{emp.allowances}</td>
+                       <td className="p-4 text-red-500">-₹{emp.deductions}</td>
+                       <td className="p-4 font-bold text-green-600 bg-green-50/30">₹{emp.netSalary}</td>
+                     </tr>
+                   ))}
+                 </tbody>
+               </table>
+             </div>
+           </div>
+        )}
+      </div>
     </div>
   );
 }
