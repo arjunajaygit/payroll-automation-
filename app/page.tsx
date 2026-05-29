@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 
@@ -31,13 +32,12 @@ export default function Dashboard() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    // Automatically load the employee database on mount
     fetch("/api/employees")
       .then((res) => res.json())
       .then((data) => {
         setEmployeeDB(data);
-        if (Array.isArray(data) && data.length > 0) {
-          setStep(2);
-        }
+        setStep(2); // Skip straight to step 2 (Salary Upload)
       });
   }, []);
 
@@ -65,25 +65,6 @@ export default function Dashboard() {
   };
 
   // Upload Handlers
-  const onDropMaster = (acceptedFiles: File[]) => {
-    Papa.parse(acceptedFiles[0], {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        // Push to backend API
-        await fetch("/api/employees", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ employees: results.data })
-        });
-        // Refresh local state
-        setEmployeeDB(results.data as EmployeeRecord[]);
-        setStep(2);
-        alert("Database synced successfully!");
-      },
-    });
-  };
 
   const onDropSalary = (acceptedFiles: File[]) => {
     setErrors([]);
@@ -141,7 +122,7 @@ export default function Dashboard() {
     }
   };
 
-  const dropzoneMaster = useDropzone({ onDrop: onDropMaster, accept: { "text/csv": [".csv"] } });
+  // master upload moved to Employee Directory; only keep salary dropzone here
   const dropzoneSalary = useDropzone({ onDrop: onDropSalary, accept: { "text/csv": [".csv"] } });
 
   return (
@@ -153,7 +134,7 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold">Smart Payroll Automation</h1>
           {payroll.length > 0 && (
             <button 
-              onClick={() => { setEmployeeDB([]); setPayroll([]); setStep(1); setErrors([]); }} 
+              onClick={() => { setEmployeeDB([]); setPayroll([]); setStep(2); setErrors([]); }} 
               className="text-sm text-red-500 font-medium hover:underline transition"
             >
               Reset All Data
@@ -161,29 +142,22 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* STEP 1: Master Upload (Hidden when Final Preview is visible) */}
-        {payroll.length === 0 && (
-          <div className={`p-6 bg-white rounded-lg shadow border-l-4 ${step === 1 ? 'border-blue-600' : 'border-green-500'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Step 1: Upload Employee Master</h2>
-              <button onClick={downloadEmployeeSample} className="text-sm text-blue-600 hover:underline">Download Sample CSV</button>
+        {/* Master DB Status */}
+        <div className="bg-white p-4 rounded-lg shadow border">
+          {employeeDB.length > 0 ? (
+            <div className="flex justify-between items-center">
+              <p className="text-green-600 font-medium">✅ Master Database Loaded ({employeeDB.length} employees)</p>
+              <Link href="/employees" className="text-sm text-blue-600 hover:underline">Manage Employees</Link>
             </div>
-            
-            {employeeDB.length === 0 ? (
-              <div {...dropzoneMaster.getRootProps()} className="border-2 border-dashed border-gray-300 p-8 text-center cursor-pointer hover:bg-gray-50 transition">
-                <input {...dropzoneMaster.getInputProps()} />
-                <p>Drag & drop the employees_master.csv here</p>
-              </div>
-            ) : (
-              <div className="flex justify-between items-center">
-                <p className="text-green-600 font-medium">✅ Master Database Loaded ({employeeDB.length} employees)</p>
-                <button onClick={() => { setEmployeeDB([]); setStep(1); }} className="text-sm text-gray-500 hover:underline">
-                  Re-upload Master
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+          ) : (
+            <div className="flex justify-between items-center">
+              <p className="text-red-600 font-medium">No Master Database detected.</p>
+              <Link href="/employees" className="text-sm text-blue-600 hover:underline">Upload Master CSV</Link>
+            </div>
+          )}
+        </div>
+
+        
 
         {/* STEP 2: Salary Upload */}
         {step === 2 && (

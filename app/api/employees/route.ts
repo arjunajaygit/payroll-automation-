@@ -6,7 +6,15 @@ const prisma = new PrismaClient();
 // Fetch all existing employees to show on the dashboard
 export async function GET() {
   try {
-    const employees = await prisma.employee.findMany();
+    // We include the 'salaries' relation sorted by newest first
+    const employees = await prisma.employee.findMany({
+      include: {
+        salaries: {
+          // cast to any to avoid local type mismatches until Prisma client is regenerated
+          orderBy: [{ createdAt: 'desc' } as any]
+        }
+      }
+    });
     return NextResponse.json(employees);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch employees" }, { status: 500 });
