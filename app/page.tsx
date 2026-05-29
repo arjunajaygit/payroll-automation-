@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 
@@ -29,6 +29,17 @@ export default function Dashboard() {
   const [step, setStep] = useState<1 | 2>(1);
   const [errors, setErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/employees")
+      .then((res) => res.json())
+      .then((data) => {
+        setEmployeeDB(data);
+        if (Array.isArray(data) && data.length > 0) {
+          setStep(2);
+        }
+      });
+  }, []);
 
   // CSV Download Helpers
   const downloadEmployeeSample = () => {
@@ -59,9 +70,17 @@ export default function Dashboard() {
       header: true,
       dynamicTyping: true,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: async (results) => {
+        // Push to backend API
+        await fetch("/api/employees", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ employees: results.data })
+        });
+        // Refresh local state
         setEmployeeDB(results.data as EmployeeRecord[]);
-        setStep(2); // Move to Step 2
+        setStep(2);
+        alert("Database synced successfully!");
       },
     });
   };

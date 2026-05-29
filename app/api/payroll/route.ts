@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 import PDFDocument from "pdfkit";
 import nodemailer from "nodemailer";
+
+const prisma = new PrismaClient();
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -153,6 +156,33 @@ export async function POST(request: Request) {
 
     for (const employee of payrollData) {
       try {
+        await prisma.salary.upsert({
+          where: {
+            employeeId_month_year: {
+              employeeId: employee.employeeId,
+              month: employee.month,
+              year: employee.year,
+            },
+          },
+          update: {
+            baseSalary: employee.baseSalary,
+            hra: employee.hra,
+            allowances: employee.allowances,
+            deductions: employee.deductions,
+            netSalary: employee.netSalary,
+          },
+          create: {
+            employeeId: employee.employeeId,
+            baseSalary: employee.baseSalary,
+            hra: employee.hra,
+            allowances: employee.allowances,
+            deductions: employee.deductions,
+            netSalary: employee.netSalary,
+            month: employee.month,
+            year: employee.year,
+          },
+        });
+
         const pdfBuffer = await generateSecurePDF(employee, fontBuffer, boldFontBuffer);
         
         // Upgraded Professional Email Template
@@ -206,10 +236,20 @@ export async function POST(request: Request) {
         };
 
         await transporter.sendMail(mailOptions);
+        await prisma.emailLog.create({
+          data: { employeeId: employee.employeeId, status: "Sent" },
+        });
         logs.push({ email: employee.email, status: "Success" });
         console.log(`✅ Email sent successfully to ${employee.email}`);
 
       } catch (err) {
+        await prisma.emailLog.create({
+          data: {
+            employeeId: employee.employeeId,
+            status: "Failed",
+            errorMessage: err instanceof Error ? err.message : String(err),
+          },
+        });
         logs.push({ email: employee.email, status: "Failed", error: err });
         console.error(`❌ Failed to send email to ${employee.email}:`, err);
       }

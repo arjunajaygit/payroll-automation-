@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Or "mysql" / "sqlite" depending on your DB
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Employee {
+  employeeId  String     @id // e.g., EMP001
+  name        String
+  email       String     @unique
+  designation String
+  birthYear   Int
+  salaries    Salary[]
+  emailLogs   EmailLog[]
+}
+
+model Salary {
+  id          String   @id @default(cuid())
+  employeeId  String
+  employee    Employee @relation(fields: [employeeId], references: [employeeId])
+  baseSalary  Float
+  hra         Float
+  allowances  Float
+  deductions  Float
+  netSalary   Float
+  month       String
+  year        Int
+  createdAt   DateTime @default(now())
+
+  @@unique([employeeId, month, year]) // Prevents duplicate salary entries for the same month
+}
+
+model EmailLog {
+  id           String   @id @default(cuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [employeeId])
+  status       String   // "Sent", "Failed", "Pending"
+  sentAt       DateTime @default(now())
+  errorMessage String?
+}
