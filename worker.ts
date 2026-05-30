@@ -12,7 +12,9 @@ dotenv.config({ path: '.env.local' }); // Also load local if present
 const prisma = new PrismaClient();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
