@@ -1,17 +1,22 @@
 import PDFDocument from "pdfkit";
 
-export async function generateSecurePDF(employee: any, fontBuffer: Buffer, boldFontBuffer: Buffer): Promise<Buffer> {
+export async function generateSecurePDF(employee: any, fontBuffer: Buffer, boldFontBuffer: Buffer, isSecure: boolean = true): Promise<Buffer> {
   return new Promise((resolve, reject) => {
-    const namePart = employee.name.substring(0, 4).toUpperCase();
-    const password = `${namePart}${employee.birthYear}`;
-
-    const doc = new PDFDocument({
-      userPassword: password,
-      ownerPassword: password,
+    
+    const pdfOptions: any = {
       permissions: { printing: "highResolution" },
       margin: 50,
       size: 'A4'
-    });
+    };
+
+    if (isSecure) {
+      const namePart = employee.name.substring(0, 4).toUpperCase();
+      const password = `${namePart}${employee.birthYear}`;
+      pdfOptions.userPassword = password;
+      pdfOptions.ownerPassword = password;
+    }
+
+    const doc = new PDFDocument(pdfOptions);
 
     const buffers: Buffer[] = [];
     doc.on("data", buffers.push.bind(buffers));
@@ -93,6 +98,22 @@ export async function generateSecurePDF(employee: any, fontBuffer: Buffer, boldF
     doc.fontSize(12).font("CustomRobotoBold").fillColor('#166534'); // Dark green text
     doc.text("NET PAYABLE SALARY:", 65, netY);
     doc.text(`Rs. ${employee.netSalary.toLocaleString()}`, 400, netY, { width: 130, align: "right" });
+
+    // --- 5.5. PREVIEW WATERMARK ---
+    // If it's an unsecured preview, stamp the blank space
+    if (!isSecure) {
+      doc.fontSize(50)
+         .font("CustomRobotoBold")
+         .fillColor('#ef4444') // Red
+         .opacity(0.15)       // Faded
+         .text("PREVIEW ONLY", 50, 480, { 
+            width: 495, 
+            align: 'center' 
+         });
+         
+      // CRITICAL: Reset opacity back to 1 so the footer doesn't get faded out!
+      doc.opacity(1); 
+    }
 
     // --- 6. FOOTER ---
     doc.y = 700;

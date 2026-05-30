@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [errors, setErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [jobState, setJobState] = useState<{ active: boolean; percent: number; status: string } | null>(null);
 
   useEffect(() => {
     // Automatically load the employee database on mount
@@ -108,7 +109,8 @@ export default function Dashboard() {
 
   const handleGenerateAndSend = async () => {
     setIsProcessing(true);
-    const loadingToast = toast.loading('Generating salary slips...');
+    setJobState({ active: true, percent: 0, status: "Initializing background workers..." });
+    const loadingToast = toast.loading('Adding payroll to processing queue...');
     try {
       const response = await fetch("/api/payroll", {
         method: "POST",
@@ -116,17 +118,51 @@ export default function Dashboard() {
         body: JSON.stringify({ payrollData: payroll }),
       });
 
-      if (response.ok) {
-        toast.success('Payroll generated successfully!', { id: loadingToast });
-        setPayroll([]); // Clear the table on success
-      } else {
-        toast.error('Failed to generate payroll.', { id: loadingToast });
+      if (!response.ok) {
+        toast.error('Failed to queue payroll.', { id: loadingToast });
+        setIsProcessing(false);
+        setJobState(null);
+        return;
       }
+
+      const data = await response.json();
+      const jobId = data.jobId;
+
+      toast.success('Added to processing queue!', { id: loadingToast });
+
+      // Poll progress every 1.5 seconds
+      const interval = setInterval(async () => {
+         const res = await fetch(`/api/payroll/status?jobId=${jobId}`);
+         if (res.ok) {
+           const statusData = await res.json();
+           
+           if (statusData.state === 'completed') {
+             clearInterval(interval);
+             setJobState({ active: false, percent: 100, status: "Completed successfully! ✅" });
+             toast.success("Background payroll processing complete!");
+             setTimeout(() => {
+                setPayroll([]);
+                setJobState(null);
+                setIsProcessing(false);
+             }, 3000);
+           } else if (statusData.state === 'failed') {
+             clearInterval(interval);
+             setJobState(null);
+             setIsProcessing(false);
+             toast.error(`Job failed: ${statusData.failedReason || 'Unknown error'}`);
+           } else {
+             const percent = statusData.progress?.percent || 0;
+             const statusStr = statusData.progress?.state || "Processing...";
+             setJobState({ active: true, percent, status: statusStr });
+           }
+         }
+      }, 1500);
+
     } catch (error) {
       console.error(error);
       toast.error('An unexpected error occurred.', { id: loadingToast });
-    } finally {
       setIsProcessing(false);
+      setJobState(null);
     }
   };
 
@@ -230,8 +266,37 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* PROGRESS BAR */}
+        {jobState && (
+          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center space-y-6">
+            <div className="flex justify-center items-center mb-4">
+              {jobState.percent < 100 ? (
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+              )}
+            </div>
+            
+            <h2 className="text-2xl font-bold text-gray-800">
+              {jobState.percent < 100 ? "Processing Payroll Queue..." : "All Done!"}
+            </h2>
+            <p className="text-blue-600 font-medium text-lg">{jobState.status}</p>
+            
+            <div className="w-full bg-gray-100 rounded-full h-6 overflow-hidden relative shadow-inner">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-6 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-3"
+                style={{ width: `${Math.max(jobState.percent, 5)}%` }}
+              >
+                <span className="text-xs font-bold text-white drop-shadow-md">{jobState.percent}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* PREVIEW TABLE */}
-        {payroll.length > 0 && (
+        {!jobState && payroll.length > 0 && (
            <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
              <div className="p-4 bg-gray-100 border-b flex justify-between items-center">
                <div>

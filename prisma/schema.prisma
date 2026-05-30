@@ -8,20 +8,42 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model Admin {
+  id        String     @id @default(cuid())
+  name      String
+  email     String     @unique
+  password  String
+  createdAt DateTime   @default(now())
+  
+  employees Employee[]
+  salaries  Salary[]
+  emailLogs EmailLog[]
+}
+
 model Employee {
-  employeeId  String     @id // e.g., EMP001
+  employeeId  String     // e.g., EMP001
+  adminId     String
+  admin       Admin      @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  
   name        String
-  email       String     @unique
+  email       String
   designation String
   birthYear   Int
+  
   salaries    Salary[]
   emailLogs   EmailLog[]
+
+  @@id([employeeId, adminId])
+  @@unique([email, adminId])
 }
 
 model Salary {
   id          String   @id @default(cuid())
   employeeId  String
-  employee    Employee @relation(fields: [employeeId], references: [employeeId])
+  adminId     String
+  admin       Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  employee    Employee @relation(fields: [employeeId, adminId], references: [employeeId, adminId], onDelete: Cascade)
+  
   baseSalary  Float
   hra         Float
   allowances  Float
@@ -31,13 +53,16 @@ model Salary {
   year        Int
   createdAt   DateTime @default(now())
 
-  @@unique([employeeId, month, year]) // Prevents duplicate salary entries for the same month
+  @@unique([employeeId, adminId, month, year]) // Prevents duplicate salary entries for the same month per admin
 }
 
 model EmailLog {
   id           String   @id @default(cuid())
   employeeId   String
-  employee     Employee @relation(fields: [employeeId], references: [employeeId])
+  adminId      String
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  employee     Employee @relation(fields: [employeeId, adminId], references: [employeeId, adminId], onDelete: Cascade)
+  
   status       String   // "Sent", "Failed", "Pending"
   sentAt       DateTime @default(now())
   errorMessage String?

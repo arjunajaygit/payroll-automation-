@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import PayslipPreview from "../components/PayslipPreview";
 
 type Log = {
   id: string;
   employeeId: string;
   employeeName: string;
+  email: string;
   month: string;
   year: number;
   sentAt: string;
@@ -16,6 +18,13 @@ type Log = {
 export default function EmailLogs() {
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
+  const [previewLog, setPreviewLog] = useState<{employeeId: string, month: string, year: number} | null>(null);
+
+  // Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState("All");
+  const [selectedYear, setSelectedYear] = useState("All");
+  const [selectedStatus, setSelectedStatus] = useState("All");
 
   useEffect(() => {
     fetch("/api/logs")
@@ -55,6 +64,57 @@ export default function EmailLogs() {
           <p className="text-gray-500 mt-2">Track salary slip deliveries and manage generated PDFs.</p>
         </header>
 
+        {/* Filters */}
+        {!loading && logs.length > 0 && (
+          <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1 w-full">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Search</label>
+              <input 
+                type="text" 
+                placeholder="Search by Name, Email, or ID..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              />
+            </div>
+            <div className="w-full md:w-36">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Month</label>
+              <select 
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+              >
+                <option value="All">All</option>
+                {Array.from(new Set(logs.map(l => l.month))).map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div className="w-full md:w-36">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Year</label>
+              <select 
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+              >
+                <option value="All">All</option>
+                {Array.from(new Set(logs.map(l => l.year))).sort().reverse().map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+            <div className="w-full md:w-36">
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</label>
+              <select 
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+              >
+                <option value="All">All</option>
+                <option value="Sent">Sent</option>
+                <option value="Failed">Failed</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+          </div>
+        )}
+
         {logs.length === 0 ? (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="p-16 text-center text-gray-500 flex flex-col items-center">
@@ -70,21 +130,34 @@ export default function EmailLogs() {
         ) : (
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="bg-gray-50 border-b">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <th className="p-4 font-semibold text-gray-600">Employee</th>
-                    <th className="p-4 font-semibold text-gray-600">Sent At</th>
-                    <th className="p-4 font-semibold text-gray-600">Status</th>
-                    <th className="p-4 font-semibold text-gray-600 text-right">Actions</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee ID</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Sent At</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                    <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-gray-50 transition">
-                      <td className="p-4 font-medium text-gray-900">{log.employeeName}</td>
-                      <td className="p-4 text-gray-500">{new Date(log.sentAt).toLocaleString()}</td>
-                      <td className="p-4">
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {logs.filter(log => {
+                    const matchesSearch = 
+                      log.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      log.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      log.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesMonth = selectedMonth === "All" || log.month === selectedMonth;
+                    const matchesYear = selectedYear === "All" || log.year.toString() === selectedYear.toString();
+                    const matchesStatus = selectedStatus === "All" || log.status === selectedStatus;
+                    return matchesSearch && matchesMonth && matchesYear && matchesStatus;
+                  }).map((log) => (
+                    <tr key={log.id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{log.employeeId}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{log.employeeName}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{log.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(log.sentAt).toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           log.status === "Sent" ? "bg-green-100 text-green-800" :
                           log.status === "Failed" ? "bg-red-100 text-red-800" :
@@ -93,38 +166,65 @@ export default function EmailLogs() {
                           {log.status}
                         </span>
                       </td>
-                      <td className="p-4 space-x-3 text-right">
-                        <a 
-                          href={`/api/pdf?employeeId=${log.employeeId}&month=${log.month}&year=${log.year}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium"
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center space-x-2">
+                        <button 
+                          onClick={() => setPreviewLog({ employeeId: log.employeeId, month: log.month, year: log.year })}
+                          className="inline-flex items-center justify-center p-2 text-blue-600 bg-blue-50 rounded-full hover:bg-blue-100 hover:text-blue-800 transition-colors"
+                          title="Preview"
                         >
-                          Preview
-                        </a>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </button>
                         <a 
                           href={`/api/pdf?employeeId=${log.employeeId}&month=${log.month}&year=${log.year}&download=true`} 
-                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          className="inline-flex items-center justify-center p-2 text-indigo-600 bg-indigo-50 rounded-full hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
+                          title="Download"
                         >
-                          Download
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                         </a>
                         {log.status === "Failed" && (
                           <button 
                             onClick={() => handleResend(log.id)}
-                            className="text-red-600 hover:text-red-800 font-medium ml-3"
+                            className="inline-flex items-center justify-center p-2 text-red-600 bg-red-50 rounded-full hover:bg-red-100 hover:text-red-800 transition-colors"
+                            title="Resend"
                           >
-                            Resend
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
                           </button>
                         )}
                       </td>
                     </tr>
                   ))}
+                  {logs.filter(log => {
+                    const matchesSearch = 
+                      log.employeeName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                      log.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      log.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
+                    const matchesMonth = selectedMonth === "All" || log.month === selectedMonth;
+                    const matchesYear = selectedYear === "All" || log.year.toString() === selectedYear.toString();
+                    const matchesStatus = selectedStatus === "All" || log.status === selectedStatus;
+                    return matchesSearch && matchesMonth && matchesYear && matchesStatus;
+                  }).length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                        No matching email logs found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
         )}
       </div>
+
+      {/* Payslip Preview Modal */}
+      {previewLog && (
+        <PayslipPreview 
+          employeeId={previewLog.employeeId} 
+          month={previewLog.month} 
+          year={previewLog.year} 
+          onClose={() => setPreviewLog(null)} 
+        />
+      )}
     </div>
   );
 }

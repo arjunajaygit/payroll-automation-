@@ -32,10 +32,8 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
         <header className="flex justify-between items-end mb-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
           <div className="relative z-10">
-            <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 tracking-tight">
-              Welcome to PayrollPro
-            </h1>
-            <p className="text-gray-500 mt-2 text-lg">Here is an overview of your organization's financial and operational health.</p>
+            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Hello, {data?.adminName || "Admin"} 👋</h1>
+            <p className="text-gray-500 mt-1 text-sm">Welcome back to your payroll command center.</p>
           </div>
           <Link href="/payroll" className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition">
             Run Payroll

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { generateSecurePDF } from "@/lib/pdf";
+import { requireAuth } from "../../../lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -11,17 +12,21 @@ export async function GET(request: Request) {
     const month = searchParams.get('month');
     const yearStr = searchParams.get('year');
     const download = searchParams.get('download');
+    const isPreview = searchParams.get('preview') === 'true';
 
     if (!employeeId || !month || !yearStr) {
       return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
     }
 
     const year = parseInt(yearStr, 10);
+    const session = await requireAuth();
+    const adminId = session.userId;
 
     const salary = await prisma.salary.findUnique({
       where: {
-        employeeId_month_year: {
+        employeeId_adminId_month_year: {
           employeeId,
+          adminId,
           month,
           year
         }
@@ -53,12 +58,12 @@ export async function GET(request: Request) {
     const fontBuffer = Buffer.from(await fontRes.arrayBuffer());
     const boldFontBuffer = Buffer.from(await boldFontRes.arrayBuffer());
 
-    const pdfBuffer = await generateSecurePDF(mergedEmployee, fontBuffer, boldFontBuffer);
+    const pdfBuffer = await generateSecurePDF(mergedEmployee, fontBuffer, boldFontBuffer, !isPreview);
 
     const headers = new Headers();
     headers.set("Content-Type", "application/pdf");
     
-    if (download === "true") {
+    if (download === "true" && !isPreview) {
       headers.set("Content-Disposition", `attachment; filename="${salary.employee.name}_SalarySlip_${month}_${year}.pdf"`);
     } else {
       headers.set("Content-Disposition", `inline; filename="${salary.employee.name}_SalarySlip_${month}_${year}.pdf"`);

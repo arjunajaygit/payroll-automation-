@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import DashboardClient from "./DashboardClient";
+import { requireAuth } from "../lib/auth";
 
 const prisma = new PrismaClient();
 
@@ -8,9 +9,15 @@ export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
   try {
-    const totalHeadcount = await prisma.employee.count();
+    const session = await requireAuth();
+    const adminId = session.userId;
+
+    const totalHeadcount = await prisma.employee.count({
+      where: { adminId }
+    });
 
     const latestSalary = await prisma.salary.findFirst({
+      where: { adminId },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -19,14 +26,16 @@ export default async function DashboardPage() {
     const currentYear = date.getFullYear();
 
     const currentMonthSalaries = await prisma.salary.findMany({
-      where: { month: currentMonth, year: currentYear },
+      where: { adminId, month: currentMonth, year: currentYear },
       include: { employee: true }
     });
 
     const currentMonthPayroll = currentMonthSalaries.reduce((sum, s) => sum + s.netSalary, 0);
     const averageSalary = totalHeadcount > 0 ? currentMonthPayroll / totalHeadcount : 0;
 
-    const emailLogs = await prisma.emailLog.findMany();
+    const emailLogs = await prisma.emailLog.findMany({
+      where: { adminId }
+    });
     const totalEmails = emailLogs.length;
     const sentEmails = emailLogs.filter(log => log.status === "Sent").length;
     const emailSuccessRate = totalEmails > 0 ? Math.round((sentEmails / totalEmails) * 100) : 0;
@@ -43,6 +52,7 @@ export default async function DashboardPage() {
 
     const trendData = await prisma.salary.groupBy({
       by: ['month', 'year'],
+      where: { adminId },
       _sum: { netSalary: true },
     });
 
@@ -65,7 +75,8 @@ export default async function DashboardPage() {
       emailSuccessRate,
       departmentCostBreakdown,
       sixMonthTrend: last6Months,
-      currentMonthDisplay: `${currentMonth} ${currentYear}`
+      currentMonthDisplay: `${currentMonth} ${currentYear}`,
+      adminName: session.name || "Admin"
     };
 
     return <DashboardClient data={data} />;
@@ -80,7 +91,8 @@ export default async function DashboardPage() {
       emailSuccessRate: 0,
       departmentCostBreakdown: [],
       sixMonthTrend: [],
-      currentMonthDisplay: "N/A"
+      currentMonthDisplay: "N/A",
+      adminName: "Admin"
     }} />;
   }
 }

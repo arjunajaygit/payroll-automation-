@@ -1,0 +1,160 @@
+import { Worker } from 'bullmq';
+import IORedis from 'ioredis';
+import { PrismaClient } from '@prisma/client';
+import nodemailer from 'nodemailer';
+import { generateSecurePDF } from './lib/pdf';
+import * as dotenv from 'dotenv';
+
+// Load environment variables for the standalone worker
+dotenv.config({ path: '.env' });
+dotenv.config({ path: '.env.local' }); // Also load local if present
+
+const prisma = new PrismaClient();
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
+
+const connection = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379', {
+  maxRetriesPerRequest: null,
+});
+
+const worker = new Worker(
+  'payroll',
+  async (job) => {
+    const { payrollData, adminId } = job.data;
+    const totalEmployees = payrollData.length;
+
+    await job.updateProgress(0); // 0%
+
+    // Optimization: fetch fonts once per job instead of per employee
+    const [fontRes, boldFontRes] = await Promise.all([
+      fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf"),
+      fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf")
+    ]);
+    const fontBuffer = Buffer.from(await fontRes.arrayBuffer());
+    const boldFontBuffer = Buffer.from(await boldFontRes.arrayBuffer());
+
+    let processedCount = 0;
+
+    for (const employee of payrollData) {
+      try {
+        await prisma.salary.upsert({
+          where: {
+            employeeId_adminId_month_year: {
+              employeeId: employee.employeeId,
+              adminId,
+              month: employee.month,
+              year: employee.year,
+            },
+          },
+          update: {
+            baseSalary: employee.baseSalary,
+            hra: employee.hra,
+            allowances: employee.allowances,
+            deductions: employee.deductions,
+            netSalary: employee.netSalary,
+          },
+          create: {
+            employeeId: employee.employeeId,
+            adminId,
+            baseSalary: employee.baseSalary,
+            hra: employee.hra,
+            allowances: employee.allowances,
+            deductions: employee.deductions,
+            netSalary: employee.netSalary,
+            month: employee.month,
+            year: employee.year,
+          },
+        });
+
+        const pdfBuffer = await generateSecurePDF(employee, fontBuffer, boldFontBuffer);
+        
+        const mailOptions = {
+          from: `"HR Department" <${process.env.GMAIL_USER}>`,
+          to: employee.email,
+          subject: `Secure: Salary Slip for ${employee.month} ${employee.year}`,
+          html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; color: #374151;">
+              <div style="background-color: #1e3a8a; padding: 24px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Monthly Salary Slip</h1>
+                <p style="color: #93c5fd; margin: 8px 0 0 0; font-size: 14px;">${employee.month} ${employee.year}</p>
+              </div>
+              <div style="padding: 32px 24px;">
+                <p style="font-size: 16px; margin-top: 0;">Dear <strong>${employee.name}</strong>,</p>
+                <p style="font-size: 15px; line-height: 1.6;">Your salary slip for the month of ${employee.month} ${employee.year} has been successfully generated and is attached to this email.</p>
+                <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0; border-radius: 4px;">
+                  <h3 style="margin: 0 0 8px 0; color: #92400e; font-size: 14px; text-transform: uppercase;">🔒 Important Security Notice</h3>
+                  <p style="margin: 0; font-size: 14px; color: #b45309; line-height: 1.5;">
+                    To protect your financial data, the attached PDF is securely encrypted.<br><br>
+                    <strong>Your Password is:</strong><br>
+                    The <strong>first 4 letters</strong> of your first name (in ALL CAPS) followed by your <strong>birth year</strong>.<br>
+                    <em>(Example: If your name is Arjun and birth year is 2003, your password is <strong>ARJU2003</strong>)</em>
+                  </p>
+                </div>
+                <div style="background-color: #f3f4f6; padding: 12px; border-radius: 4px; margin-bottom: 24px;">
+                  <p style="margin: 0; font-size: 13px; color: #6b7280;">
+                    <strong>Note:</strong> If you are reading this in your Spam or Junk folder, please click <em>"Report as not spam"</em> to ensure future payslips arrive in your primary inbox.
+                  </p>
+                </div>
+                <p style="font-size: 15px; margin: 0;">Regards,<br><strong>Human Resources Department</strong></p>
+              </div>
+              <div style="background-color: #f9fafb; padding: 16px; text-align: center; border-top: 1px solid #e5e7eb;">
+                <p style="margin: 0; font-size: 12px; color: #9ca3af;">Please do not reply directly to this automated email.</p>
+              </div>
+            </div>
+          `,
+          attachments: [
+            {
+              filename: `${employee.name}_SalarySlip_${employee.month}_${employee.year}.pdf`,
+              content: pdfBuffer,
+            }
+          ]
+        };
+
+        await transporter.sendMail(mailOptions);
+        await prisma.emailLog.create({
+          data: { employeeId: employee.employeeId, adminId, status: "Sent" },
+        });
+
+      } catch (err) {
+        await prisma.emailLog.create({
+          data: {
+            employeeId: employee.employeeId,
+            adminId,
+            status: "Failed",
+            errorMessage: err instanceof Error ? err.message : String(err),
+          },
+        });
+      }
+
+      processedCount++;
+      // Calculate progress and pass state down
+      const progressPercent = Math.round((processedCount / totalEmployees) * 100);
+      
+      // Update progress in Redis so frontend can poll it
+      // Let's pass a custom object containing percent and state string
+      await job.updateProgress({
+        percent: progressPercent,
+        state: progressPercent === 100 ? 'Completed' : (progressPercent > 50 ? 'Sending emails...' : 'Generating slips...')
+      });
+    }
+
+    return { success: true, processedCount };
+  },
+  { connection: connection as any }
+);
+
+worker.on('completed', job => {
+  console.log(`✅ Job ${job.id} completed successfully!`);
+});
+
+worker.on('failed', (job, err) => {
+  console.error(`❌ Job ${job?.id} failed:`, err);
+});
+
+console.log("🚀 BullMQ Worker running and listening for jobs...");
