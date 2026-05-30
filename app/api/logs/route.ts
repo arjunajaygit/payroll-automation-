@@ -27,13 +27,14 @@ export async function GET() {
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     const formattedLogs = logs.map(log => {
+      const latestSalary = log.employee.salaries[0];
       return {
         id: log.id,
         employeeId: log.employeeId,
         employeeName: log.employee.name,
         email: log.employee.email,
-        month: monthNames[log.sentAt.getMonth()],
-        year: log.sentAt.getFullYear(),
+        month: latestSalary ? latestSalary.month : monthNames[log.sentAt.getMonth()],
+        year: latestSalary ? latestSalary.year : log.sentAt.getFullYear(),
         sentAt: log.sentAt,
         status: log.status,
       };

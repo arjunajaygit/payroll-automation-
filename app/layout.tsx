@@ -33,12 +33,10 @@ export default async function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-slate-50 text-slate-900">
+      <body className="bg-slate-50 text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
         {session && <Sidebar />}
-        <main className={`flex-1 min-w-0 ${session ? "ml-64" : ""}`}>
-          <div className="h-full">
-            {children}
-          </div>
+        <main className={`${session ? "ml-64" : ""}`}>
+          {children}
         </main>
         <Toaster position="top-right" />
       </body>
