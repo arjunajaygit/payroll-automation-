@@ -8,7 +8,6 @@ export default function SalaryTableClient({ initialSalaries }: { initialSalaries
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
 
-  // Extract unique months and years for filter dropdowns
   const months = useMemo(() => {
     const unique = Array.from(new Set(initialSalaries.map(s => s.month)));
     return ["All", ...unique];
@@ -19,7 +18,6 @@ export default function SalaryTableClient({ initialSalaries }: { initialSalaries
     return ["All", ...unique.sort().reverse()];
   }, [initialSalaries]);
 
-  // Filter logic
   const filteredSalaries = useMemo(() => {
     return initialSalaries.filter(record => {
       const matchesSearch = 
@@ -36,77 +34,77 @@ export default function SalaryTableClient({ initialSalaries }: { initialSalaries
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex flex-col sm:flex-row gap-4 items-end">
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 items-end">
         <div className="flex-1 w-full">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Search</label>
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Search</label>
           <input 
             type="text" 
             placeholder="Search by Name or EMP ID..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
         <div className="w-full sm:w-48">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Month</label>
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Month</label>
           <select 
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+            className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
           >
             {months.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
         <div className="w-full sm:w-48">
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Year</label>
+          <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Year</label>
           <select 
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 text-gray-900 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
+            className="w-full bg-slate-50 border border-slate-200 text-slate-900 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none"
           >
             {years.map(y => <option key={y} value={y}>{y}</option>)}
           </select>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-slate-200">
+            <thead className="bg-slate-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Employee ID</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Month</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Base Salary</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Deductions</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">HRA</th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Net Salary</th>
-                <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Employee ID</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Name</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Month</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Base Salary</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Deductions</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">HRA</th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Net Salary</th>
+                <th scope="col" className="px-6 py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-slate-100">
               {filteredSalaries.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <tr key={record.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-slate-500">
                     {record.employeeId}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">
                     {record.employee.name}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                     {record.month} {record.year}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                    Rs. {record.baseSalary.toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
+                    ₹{record.baseSalary.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 text-right">
-                    - Rs. {record.deductions.toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-red-500 text-right">
+                    -₹{record.deductions.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                    Rs. {record.hra.toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-right">
+                    ₹{record.hra.toLocaleString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 text-right">
-                    Rs. {record.netSalary.toLocaleString()}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-emerald-600 text-right">
+                    ₹{record.netSalary.toLocaleString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                     <PreviewAction employeeId={record.employeeId} month={record.month} year={record.year} />
@@ -115,7 +113,7 @@ export default function SalaryTableClient({ initialSalaries }: { initialSalaries
               ))}
               {filteredSalaries.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-12 text-center text-slate-400 text-sm">
                     No matching salary records found.
                   </td>
                 </tr>

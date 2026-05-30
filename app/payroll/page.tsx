@@ -175,43 +175,46 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="font-medium text-lg text-gray-600">Checking database...</p>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 border-[3px] border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="font-medium text-sm text-slate-400">Checking database...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 text-black">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
+      <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* Header with Clear Button */}
+        {/* Page Header */}
         <div className="flex justify-between items-end">
-          <h1 className="text-3xl font-bold">Smart Payroll Automation</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Process Payroll</h1>
+            <p className="text-slate-400 mt-1 text-sm">Upload monthly compensation data to generate and distribute payslips.</p>
+          </div>
           {payroll.length > 0 && (
             <button 
               onClick={() => { setPayroll([]); setErrors([]); }} 
-              className="text-sm text-gray-500 font-medium hover:text-gray-700 hover:underline transition"
+              className="text-xs text-slate-400 font-medium hover:text-slate-600 transition"
             >
-              Clear Preview
+              Clear Selection
             </button>
           )}
         </div>
 
         {/* Master DB Status */}
-        <div className="bg-white p-4 rounded-lg shadow border">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
           {employeeDB.length > 0 ? (
             <div className="flex justify-between items-center">
-              <p className="text-green-600 font-medium">✅ Master Database Loaded ({employeeDB.length} employees)</p>
-              <Link href="/employees" className="text-sm text-blue-600 hover:underline">Manage Employees</Link>
+              <p className="text-emerald-600 font-medium text-sm">✅ Master Database Synchronized ({employeeDB.length} active records)</p>
+              <Link href="/employees" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Manage Records</Link>
             </div>
           ) : (
             <div className="flex justify-between items-center">
-              <p className="text-red-600 font-medium">No Master Database detected.</p>
-              <Link href="/employees" className="text-sm text-blue-600 hover:underline">Upload Master CSV</Link>
+              <p className="text-red-500 font-medium text-sm">Employee database is currently empty.</p>
+              <Link href="/employees" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Upload Records</Link>
             </div>
           )}
         </div>
@@ -220,46 +223,48 @@ export default function Dashboard() {
 
         {/* STEP 1: Empty State */}
         {step === 1 && (
-          <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl shadow-md border border-gray-200 text-center space-y-4">
-            <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
-              <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
+            <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-800">Welcome to Smart Payroll!</h2>
-            <p className="text-gray-500 max-w-md">
-              It looks like you haven't uploaded an employee database yet. To begin processing salaries, please head over to the Employee Directory and upload your first Master CSV.
+            <h2 className="text-lg font-semibold text-slate-900">Payroll Processing Initialization</h2>
+            <p className="text-sm text-slate-400 max-w-md">
+              The employee database is currently empty. Please synchronize your workforce records before processing payroll.
             </p>
-            <Link href="/employees" className="mt-4 inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700 transition">
-              Go to Employee Directory
-              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            <Link href="/employees" className="mt-2 inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl shadow-sm hover:bg-blue-700 transition">
+              Access Employee Database
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
             </Link>
           </div>
         )}
 
         {/* STEP 2: Salary Upload */}
         {step === 2 && (
-          <div className={`p-6 bg-white rounded-lg shadow border-l-4 ${payroll.length > 0 ? 'border-gray-300' : 'border-blue-600'}`}>
+          <div className={`p-6 bg-white rounded-2xl shadow-sm border ${payroll.length > 0 ? 'border-slate-200' : 'border-slate-200'}`}>
             <div className="flex justify-between items-center mb-4">
-              <h2 className={`font-semibold ${payroll.length > 0 ? 'text-lg text-gray-600' : 'text-xl'}`}>
-                {payroll.length > 0 ? "Need to modify this month's salary data?" : "Upload Monthly Salary"}
-              </h2>
+              <div>
+                <h2 className={`font-semibold ${payroll.length > 0 ? 'text-sm text-slate-500' : 'text-sm text-slate-700'}`}>
+                  {payroll.length > 0 ? "Update Monthly Compensation Data" : "Upload Compensation Data"}
+                </h2>
+              </div>
               {payroll.length === 0 && (
-                <button onClick={downloadSalarySample} className="text-sm text-blue-600 hover:underline">Download Sample CSV</button>
+                <button onClick={downloadSalarySample} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Download Template</button>
               )}
             </div>
             
-            <div {...dropzoneSalary.getRootProps()} className={`border-2 border-dashed text-center cursor-pointer transition ${payroll.length > 0 ? 'p-4 border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100' : 'p-8 border-gray-300 hover:bg-gray-50'}`}>
+            <div {...dropzoneSalary.getRootProps()} className={`border-2 border-dashed rounded-xl text-center cursor-pointer transition-all ${payroll.length > 0 ? 'p-4 border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100' : 'p-8 border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}>
               <input {...dropzoneSalary.getInputProps()} />
-              <p>{payroll.length > 0 ? "Drag & drop a new salary_month.csv here to overwrite the table below" : "Drag & drop the salary_month.csv here"}</p>
+              <p className="text-sm">{payroll.length > 0 ? "Drag and drop an updated salary CSV file here to overwrite current data" : "Drag and drop your monthly salary CSV file here"}</p>
             </div>
           </div>
         )}
 
         {/* ERRORS */}
         {errors.length > 0 && (
-          <div className="p-4 bg-red-100 text-red-700 rounded-lg shadow-sm border border-red-200">
-            <strong className="font-semibold">Validation Errors:</strong>
+          <div className="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-200">
+            <strong className="text-sm font-semibold">Validation Errors:</strong>
             <ul className="list-disc ml-5 mt-2 space-y-1 text-sm">
               {errors.map((err, i) => <li key={i}>{err}</li>)}
             </ul>
@@ -268,79 +273,77 @@ export default function Dashboard() {
 
         {/* PROGRESS BAR */}
         {jobState && (
-          <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-200 text-center space-y-6">
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-6">
             <div className="flex justify-center items-center mb-4">
               {jobState.percent < 100 ? (
-                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-10 h-10 border-[3px] border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                 </div>
               )}
             </div>
             
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-xl font-bold text-slate-900">
               {jobState.percent < 100 ? "Processing Payroll Queue..." : "All Done!"}
             </h2>
-            <p className="text-blue-600 font-medium text-lg">{jobState.status}</p>
+            <p className="text-blue-600 font-medium text-sm">{jobState.status}</p>
             
-            <div className="w-full bg-gray-100 rounded-full h-6 overflow-hidden relative shadow-inner">
+            <div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
               <div 
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-6 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-3"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-2"
                 style={{ width: `${Math.max(jobState.percent, 5)}%` }}
               >
-                <span className="text-xs font-bold text-white drop-shadow-md">{jobState.percent}%</span>
+                <span className="text-[10px] font-bold text-white">{jobState.percent}%</span>
               </div>
             </div>
           </div>
         )}
 
-        {/* PREVIEW TABLE */}
         {!jobState && payroll.length > 0 && (
-           <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
-             <div className="p-4 bg-gray-100 border-b flex justify-between items-center">
+           <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
+             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                <div>
-                 <h2 className="font-semibold text-lg text-gray-800">Final Payroll Preview</h2>
-                 <p className="text-sm text-gray-500">Review all details before generating {payroll.length} salary slips.</p>
+                 <h2 className="text-sm font-semibold text-slate-700">Payroll Processing Preview</h2>
+                 <p className="text-xs text-slate-400 mt-0.5">Verify compensation details before authorizing the generation of {payroll.length} payslips.</p>
                </div>
                <button 
                  onClick={handleGenerateAndSend} 
-                 className={`text-white px-6 py-2 rounded-md shadow transition font-medium ${(isProcessing || errors.length > 0) ? 'opacity-60 cursor-not-allowed bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+                 className={`text-white text-sm px-5 py-2.5 rounded-xl shadow-sm transition font-medium ${(isProcessing || errors.length > 0) ? 'opacity-60 cursor-not-allowed bg-slate-300' : 'bg-blue-600 hover:bg-blue-700'}`}
                  disabled={isProcessing || errors.length > 0}
                >
-                 {isProcessing ? "Processing..." : "Generate PDFs & Send Emails"}
+                 {isProcessing ? "Processing..." : "Authorize & Distribute Payslips"}
                </button>
              </div>
              
              <div className="overflow-x-auto">
-               <table className="w-full text-left text-sm whitespace-nowrap">
-                 <thead className="bg-gray-50 border-b">
+               <table className="min-w-full divide-y divide-slate-200">
+                 <thead className="bg-slate-50">
                    <tr>
-                     <th className="p-4 font-semibold text-gray-600">ID</th>
-                     <th className="p-4 font-semibold text-gray-600">Employee Details</th>
-                     <th className="p-4 font-semibold text-gray-600">Period</th>
-                     <th className="p-4 font-semibold text-gray-600">Base</th>
-                     <th className="p-4 font-semibold text-gray-600">HRA</th>
-                     <th className="p-4 font-semibold text-gray-600">Allowances</th>
-                     <th className="p-4 font-semibold text-gray-600">Deductions</th>
-                     <th className="p-4 font-bold text-blue-600">Net Salary</th>
+                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">ID</th>
+                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Employee</th>
+                     <th className="px-6 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Period</th>
+                     <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Base</th>
+                     <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">HRA</th>
+                     <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Allowances</th>
+                     <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Deductions</th>
+                     <th className="px-6 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Net Salary</th>
                    </tr>
                  </thead>
-                 <tbody>
+                 <tbody className="divide-y divide-slate-100">
                    {payroll.map((emp, i) => (
-                     <tr key={i} className="border-b hover:bg-gray-50 transition">
-                       <td className="p-4 text-gray-600">{emp.employeeId}</td>
-                       <td className="p-4">
-                         <div className="font-medium text-gray-900">{emp.name}</div>
-                         <div className="text-xs text-gray-500">{emp.designation}</div>
-                         <div className="text-xs text-blue-500">{emp.email}</div>
+                     <tr key={i} className="hover:bg-slate-50 transition-colors">
+                       <td className="px-6 py-4 text-sm font-mono text-slate-500">{emp.employeeId}</td>
+                       <td className="px-6 py-4">
+                         <div className="text-sm font-medium text-slate-900">{emp.name}</div>
+                         <div className="text-xs text-slate-400">{emp.designation} · {emp.email}</div>
                        </td>
-                       <td className="p-4 text-gray-600">{emp.month} {emp.year}</td>
-                       <td className="p-4">₹{emp.baseSalary}</td>
-                       <td className="p-4">₹{emp.hra}</td>
-                       <td className="p-4">₹{emp.allowances}</td>
-                       <td className="p-4 text-red-500">-₹{emp.deductions}</td>
-                       <td className="p-4 font-bold text-green-600 bg-green-50/30">₹{emp.netSalary}</td>
+                       <td className="px-6 py-4 text-sm text-slate-500">{emp.month} {emp.year}</td>
+                       <td className="px-6 py-4 text-sm text-slate-900 text-right">₹{emp.baseSalary.toLocaleString()}</td>
+                       <td className="px-6 py-4 text-sm text-slate-900 text-right">₹{emp.hra.toLocaleString()}</td>
+                       <td className="px-6 py-4 text-sm text-slate-900 text-right">₹{emp.allowances.toLocaleString()}</td>
+                       <td className="px-6 py-4 text-sm text-red-500 text-right">-₹{emp.deductions.toLocaleString()}</td>
+                       <td className="px-6 py-4 text-sm font-semibold text-emerald-600 text-right">₹{emp.netSalary.toLocaleString()}</td>
                      </tr>
                    ))}
                  </tbody>

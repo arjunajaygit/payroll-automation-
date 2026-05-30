@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from "recharts";
-import { ArrowUpRight, ArrowDownRight, Users, IndianRupee, Mail, Banknote } from "lucide-react";
+import { Users, IndianRupee, Mail, Banknote } from "lucide-react";
 
 type DashboardData = {
   totalHeadcount: number;
@@ -12,123 +12,117 @@ type DashboardData = {
   departmentCostBreakdown: { name: string; value: number }[];
   sixMonthTrend: { month: string; cost: number }[];
   currentMonthDisplay: string;
+  adminName?: string;
 };
 
-const COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
+const COLORS = ['#3b82f6', '#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd'];
 
-function MetricCard({ title, value, subtitle, trend, trendUp, icon: Icon }: any) {
+function MetricCard({ title, value, subtitle, icon: Icon, iconBg = "bg-blue-50", iconColor = "text-blue-600" }: any) {
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start">
         <div>
-          <h3 className="text-sm font-semibold text-slate-500">{title}</h3>
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{title}</h3>
           <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
         </div>
-        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-          <Icon className="w-6 h-6" />
+        <div className={`p-3 ${iconBg} ${iconColor} rounded-xl`}>
+          <Icon className="w-5 h-5" />
         </div>
       </div>
-      <div className="mt-4 flex items-center gap-2 text-sm">
-        {trend && (
-          <span className={`flex items-center font-medium ${trendUp ? "text-emerald-600" : "text-red-600"}`}>
-            {trendUp ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowDownRight className="w-4 h-4 mr-1" />}
-            {trend}
-          </span>
-        )}
-        <span className="text-slate-400">{subtitle}</span>
-      </div>
+      <p className="mt-4 text-sm text-slate-400">{subtitle}</p>
     </div>
   );
 }
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
   return (
-    <div className="min-h-screen p-8 bg-gray-50 text-black">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <header className="flex justify-between items-end mb-8 bg-white p-8 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none"></div>
-          <div className="relative z-10">
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Hello, {data?.adminName || "Admin"} 👋</h1>
-            <p className="text-gray-500 mt-1 text-sm">Welcome back to your payroll command center.</p>
+    <div className="min-h-screen p-8 bg-slate-50 text-slate-900">
+      <div className="max-w-6xl mx-auto space-y-8">
+
+        {/* Page Header */}
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome, {data?.adminName || "Admin"}</h1>
+            <p className="text-slate-400 mt-1 text-sm">Overview of your organization's payroll metrics and workforce data.</p>
           </div>
-          <Link href="/payroll" className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition">
+          <Link href="/payroll" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl shadow-sm hover:bg-blue-700 transition">
             Run Payroll
           </Link>
-        </header>
+        </div>
 
-        {/* METRICS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard 
-            title="Total Headcount" 
-            value={data?.totalHeadcount || 0} 
-            subtitle="vs last month" 
-            trend="2.4%" 
-            trendUp={true} 
-            icon={Users} 
+        {/* Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <MetricCard
+            title="Total Employees"
+            value={data?.totalHeadcount || 0}
+            subtitle="Active employees"
+            icon={Users}
+            iconBg="bg-blue-50"
+            iconColor="text-blue-600"
           />
-          <MetricCard 
-            title="Payroll Cost" 
-            value={`₹${(data?.currentMonthPayroll || 0).toLocaleString()}`} 
-            subtitle={data?.currentMonthDisplay || "Current Month"} 
-            icon={IndianRupee} 
+          <MetricCard
+            title="Payroll Cost"
+            value={`₹${(data?.currentMonthPayroll || 0).toLocaleString()}`}
+            subtitle={data?.currentMonthDisplay || "Current Month"}
+            icon={IndianRupee}
+            iconBg="bg-emerald-50"
+            iconColor="text-emerald-600"
           />
-          <MetricCard 
-            title="Avg. Salary" 
-            value={`₹${Math.round(data?.averageSalary || 0).toLocaleString()}`} 
-            subtitle="Across all departments" 
-            icon={Banknote} 
+          <MetricCard
+            title="Avg. Salary"
+            value={`₹${Math.round(data?.averageSalary || 0).toLocaleString()}`}
+            subtitle="Across all departments"
+            icon={Banknote}
+            iconBg="bg-violet-50"
+            iconColor="text-violet-600"
           />
-          <MetricCard 
-            title="Email Delivery" 
-            value={`${data?.emailSuccessRate || 0}%`} 
-            subtitle="Payslips delivered" 
-            trend="100%" 
-            trendUp={true} 
-            icon={Mail} 
+          <MetricCard
+            title="Email Delivery"
+            value={`${data?.emailSuccessRate || 0}%`}
+            subtitle="Payslips delivered"
+            icon={Mail}
+            iconBg="bg-amber-50"
+            iconColor="text-amber-600"
           />
         </div>
 
-        {/* CHARTS GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          
-          {/* BAR CHART */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">6-Month Payroll Trend</h3>
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* Bar Chart */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-6">6-Month Payroll Trend</h3>
             <div className="h-[300px] w-full">
               {data?.sixMonthTrend && data.sixMonthTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300} minWidth={0}>
                   <BarChart data={data.sixMonthTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    {/* Add a subtle dashed grid */}
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                    <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} dx={-10} />
-                    
-                    {/* Modern Tooltip Styling */}
-                    <Tooltip 
-                      cursor={{ fill: 'transparent' }} 
-                      contentStyle={{ 
-                        borderRadius: '12px', 
-                        border: 'none', 
-                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} dx={-10} />
+                    <Tooltip
+                      cursor={{ fill: 'transparent' }}
+                      contentStyle={{
+                        borderRadius: '12px',
+                        border: 'none',
+                        boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)',
                         backgroundColor: '#1e293b',
-                        color: '#f8fafc'
-                      }} 
+                        color: '#f8fafc',
+                        fontSize: '13px',
+                      }}
                       itemStyle={{ color: '#38bdf8' }}
                     />
-                    
-                    {/* Rounded top corners on bars */}
                     <Bar dataKey="cost" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={50} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full flex items-center justify-center text-gray-400 font-medium">No trend data available</div>
+                <div className="h-full flex items-center justify-center text-slate-400 font-medium">No trend data available</div>
               )}
             </div>
           </div>
 
-          {/* PIE CHART */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">Cost by Designation</h3>
+          {/* Pie Chart */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-6">Cost by Designation</h3>
             <div className="h-[300px] w-full">
               {data?.departmentCostBreakdown && data.departmentCostBreakdown.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300} minWidth={0}>
@@ -146,12 +140,23 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: any) => `₹${Number(value).toLocaleString()}`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
+                    <Tooltip
+                      formatter={(value: any) => `₹${Number(value).toLocaleString()}`}
+                      contentStyle={{
+                        borderRadius: '12px',
+                        border: 'none',
+                        boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)',
+                        backgroundColor: '#1e293b',
+                        color: '#f8fafc',
+                        fontSize: '13px',
+                      }}
+                      itemStyle={{ color: '#a78bfa' }}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px', color: '#64748b' }} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full flex items-center justify-center text-gray-400 font-medium">No department data available</div>
+                <div className="h-full flex items-center justify-center text-slate-400 font-medium">No department data available</div>
               )}
             </div>
           </div>

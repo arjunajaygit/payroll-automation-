@@ -22,12 +22,14 @@ export default async function SalaryRecordsPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8 text-black">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Salary Records</h1>
-          <p className="text-gray-500 mt-2">View and manage historical payslips.</p>
-        </header>
+    <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex justify-between items-end">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Compensation Records</h1>
+            <p className="text-slate-400 mt-1 text-sm">Access and manage historical employee compensation data.</p>
+          </div>
+        </div>
 
         <SalaryTableClient initialSalaries={salaries} />
       </div>
