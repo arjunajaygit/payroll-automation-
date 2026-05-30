@@ -132,6 +132,7 @@ const worker = new Worker(
           });
 
         } catch (err) {
+          console.error(`❌ Failed to send email to ${employee.email}:`, err);
           await prisma.emailLog.create({
             data: {
               employeeId: employee.employeeId,
