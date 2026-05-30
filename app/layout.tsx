@@ -38,7 +38,7 @@ export default function RootLayout({
           <div className="space-x-6 text-sm font-medium">
             <Link href="/" className="hover:text-blue-400 transition">Dashboard</Link>
             <Link href="/payroll" className="hover:text-blue-400 transition">Run Payroll</Link>
-            <Link href="/employees" className="hover:text-blue-400 transition">Directory</Link>
+            <Link href="/employees" className="hover:text-blue-400 transition">Employees</Link>
             <Link href="/logs" className="hover:text-blue-400 transition">Email Logs</Link>
           </div>
         </nav>

@@ -51,7 +51,7 @@ export default function EmailLogs() {
     <div className="min-h-screen p-8 bg-gray-50 text-black">
       <div className="max-w-6xl mx-auto space-y-8">
         <header className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Email & Audit Logs</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Email Logs</h1>
           <p className="text-gray-500 mt-2">Track salary slip deliveries and manage generated PDFs.</p>
         </header>
 
@@ -74,7 +74,6 @@ export default function EmailLogs() {
                 <thead className="bg-gray-50 border-b">
                   <tr>
                     <th className="p-4 font-semibold text-gray-600">Employee</th>
-                    <th className="p-4 font-semibold text-gray-600">Period</th>
                     <th className="p-4 font-semibold text-gray-600">Sent At</th>
                     <th className="p-4 font-semibold text-gray-600">Status</th>
                     <th className="p-4 font-semibold text-gray-600 text-right">Actions</th>
@@ -84,7 +83,6 @@ export default function EmailLogs() {
                   {logs.map((log) => (
                     <tr key={log.id} className="hover:bg-gray-50 transition">
                       <td className="p-4 font-medium text-gray-900">{log.employeeName}</td>
-                      <td className="p-4 text-gray-600">{log.month} {log.year}</td>
                       <td className="p-4 text-gray-500">{new Date(log.sentAt).toLocaleString()}</td>
                       <td className="p-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 import toast from "react-hot-toast";
+import { validateSalaryCSV } from "../../lib/csvValidation";
 
 // Type Definitions based on your exact schema
 type EmployeeRecord = {
@@ -31,6 +32,7 @@ export default function Dashboard() {
   const [step, setStep] = useState<1 | 2>(1);
   const [errors, setErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     // Automatically load the employee database on mount
@@ -44,6 +46,7 @@ export default function Dashboard() {
         } else {
           setStep(1);
         }
+        setIsLoading(false);
       });
   }, []);
 
@@ -72,37 +75,33 @@ export default function Dashboard() {
 
   // Upload Handlers
 
-  const onDropSalary = (acceptedFiles: File[]) => {
+  const onDropSalary = (acceptedFiles: File[], fileRejections: any[]) => {
     setErrors([]);
+    
+    if (fileRejections.length > 0) {
+      const rejectionErrors = fileRejections.map(rejection => {
+        return `File rejected: ${rejection.file.name} - ${rejection.errors.map((e: any) => e.message).join(', ')}`;
+      });
+      setErrors(rejectionErrors);
+      return;
+    }
+
+    if (acceptedFiles.length === 0) return;
+
     Papa.parse(acceptedFiles[0], {
       header: true,
       dynamicTyping: true,
       skipEmptyLines: true,
       complete: (results) => {
-        const mergedData: MergedPayroll[] = [];
-        const newErrors: string[] = [];
+        const validation = validateSalaryCSV(results.data, employeeDB);
 
-        results.data.forEach((salaryRow: any) => {
-          const dbRecord = employeeDB.find((emp) => emp.employeeId === salaryRow.employeeId);
+        if (!validation.isValid) {
+          setErrors(validation.errors);
+          setPayroll([]);
+          return;
+        }
 
-          if (dbRecord) {
-            mergedData.push({
-              ...dbRecord,
-              baseSalary: salaryRow.baseSalary,
-              hra: salaryRow.hra,
-              allowances: salaryRow.allowances,
-              deductions: salaryRow.deductions,
-              month: salaryRow.month,
-              year: salaryRow.year,
-              netSalary: (salaryRow.baseSalary + salaryRow.hra + salaryRow.allowances) - salaryRow.deductions,
-            });
-          } else {
-            newErrors.push(`ID ${salaryRow.employeeId} not found in Master Database.`);
-          }
-        });
-
-        setPayroll(mergedData);
-        if (newErrors.length > 0) setErrors(newErrors);
+        setPayroll(validation.data as MergedPayroll[]);
       },
     });
   };
@@ -132,7 +131,22 @@ export default function Dashboard() {
   };
 
   // master upload moved to Employee Directory; only keep salary dropzone here
-  const dropzoneSalary = useDropzone({ onDrop: onDropSalary, accept: { "text/csv": [".csv"] } });
+  const dropzoneSalary = useDropzone({ 
+    onDrop: onDropSalary, 
+    accept: { "text/csv": [".csv"] },
+    maxSize: 5242880 // 5MB limit
+  });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="font-medium text-lg text-gray-600">Checking database...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8 text-black">
@@ -192,7 +206,7 @@ export default function Dashboard() {
           <div className={`p-6 bg-white rounded-lg shadow border-l-4 ${payroll.length > 0 ? 'border-gray-300' : 'border-blue-600'}`}>
             <div className="flex justify-between items-center mb-4">
               <h2 className={`font-semibold ${payroll.length > 0 ? 'text-lg text-gray-600' : 'text-xl'}`}>
-                {payroll.length > 0 ? "Need to modify this month's salary data?" : "Step 2: Upload Monthly Salary"}
+                {payroll.length > 0 ? "Need to modify this month's salary data?" : "Upload Monthly Salary"}
               </h2>
               {payroll.length === 0 && (
                 <button onClick={downloadSalarySample} className="text-sm text-blue-600 hover:underline">Download Sample CSV</button>

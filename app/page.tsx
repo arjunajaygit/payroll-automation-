@@ -1,133 +1,86 @@
-"use client";
+import { PrismaClient } from "@prisma/client";
+import DashboardClient from "./DashboardClient";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+const prisma = new PrismaClient();
 
-type DashboardData = {
-  totalHeadcount: number;
-  currentMonthPayroll: number;
-  averageSalary: number;
-  emailSuccessRate: number;
-  departmentCostBreakdown: { name: string; value: number }[];
-  sixMonthTrend: { month: string; cost: number }[];
-  currentMonthDisplay: string;
-};
+// Opt out of static generation to ensure we get fresh data
+export const dynamic = 'force-dynamic';
 
-const COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
+export default async function DashboardPage() {
+  try {
+    const totalHeadcount = await prisma.employee.count();
 
-function MetricCard({ title, value, subtitle }: { title: string; value: string | number; subtitle: string }) {
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{title}</h3>
-      <p className="text-3xl font-bold text-gray-800 mt-4 truncate">{value}</p>
-      <div className="mt-4 text-sm text-gray-400 font-medium">{subtitle}</div>
-    </div>
-  );
-}
+    const latestSalary = await prisma.salary.findFirst({
+      orderBy: { createdAt: 'desc' }
+    });
 
-export default function Dashboard() {
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(true);
+    const date = new Date();
+    const currentMonth = date.toLocaleString('default', { month: 'long' });
+    const currentYear = date.getFullYear();
 
-  useEffect(() => {
-    fetch("/api/dashboard")
-      .then(res => res.json())
-      .then(data => {
-        setData(data);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to load dashboard data", err);
-        setLoading(false);
-      });
-  }, []);
+    const currentMonthSalaries = await prisma.salary.findMany({
+      where: { month: currentMonth, year: currentYear },
+      include: { employee: true }
+    });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-500">
-        <div className="animate-pulse flex flex-col items-center">
-          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="font-medium text-lg text-gray-600">Loading analytics...</p>
-        </div>
-      </div>
-    );
+    const currentMonthPayroll = currentMonthSalaries.reduce((sum, s) => sum + s.netSalary, 0);
+    const averageSalary = totalHeadcount > 0 ? currentMonthPayroll / totalHeadcount : 0;
+
+    const emailLogs = await prisma.emailLog.findMany();
+    const totalEmails = emailLogs.length;
+    const sentEmails = emailLogs.filter(log => log.status === "Sent").length;
+    const emailSuccessRate = totalEmails > 0 ? Math.round((sentEmails / totalEmails) * 100) : 0;
+
+    const deptCosts: Record<string, number> = {};
+    currentMonthSalaries.forEach(s => {
+      const dept = s.employee?.designation || "Unknown";
+      deptCosts[dept] = (deptCosts[dept] || 0) + s.netSalary;
+    });
+    
+    const departmentCostBreakdown = Object.entries(deptCosts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+
+    const trendData = await prisma.salary.groupBy({
+      by: ['month', 'year'],
+      _sum: { netSalary: true },
+    });
+
+    const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
+    trendData.sort((a, b) => {
+      if (a.year !== b.year) return a.year - b.year;
+      return monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month);
+    });
+
+    const last6Months = trendData.slice(-6).map(t => ({
+      month: `${t.month.slice(0, 3)} ${t.year}`,
+      cost: t._sum.netSalary || 0
+    }));
+
+    const data = {
+      totalHeadcount,
+      currentMonthPayroll,
+      averageSalary,
+      emailSuccessRate,
+      departmentCostBreakdown,
+      sixMonthTrend: last6Months,
+      currentMonthDisplay: `${currentMonth} ${currentYear}`
+    };
+
+    return <DashboardClient data={data} />;
+
+  } catch (error) {
+    console.error("Failed to load dashboard data:", error);
+    // Provide fallback empty data on error so it doesn't crash
+    return <DashboardClient data={{
+      totalHeadcount: 0,
+      currentMonthPayroll: 0,
+      averageSalary: 0,
+      emailSuccessRate: 0,
+      departmentCostBreakdown: [],
+      sixMonthTrend: [],
+      currentMonthDisplay: "N/A"
+    }} />;
   }
-
-  return (
-    <div className="min-h-screen p-8 bg-gray-50 text-black">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <header className="flex justify-between items-end mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Advanced Analytics</h1>
-            <p className="text-gray-500 mt-2">Overview of financial and operational health for {data?.currentMonthDisplay}.</p>
-          </div>
-          <Link href="/payroll" className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md shadow hover:bg-blue-700 transition">
-            Run Payroll
-          </Link>
-        </header>
-
-        {/* METRICS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard title="Total Headcount" value={data?.totalHeadcount || 0} subtitle="Active Employees" />
-          <MetricCard title="Payroll Cost" value={`$${(data?.currentMonthPayroll || 0).toLocaleString()}`} subtitle={data?.currentMonthDisplay || "Current Month"} />
-          <MetricCard title="Avg. Salary" value={`$${Math.round(data?.averageSalary || 0).toLocaleString()}`} subtitle="Per Employee" />
-          <MetricCard title="Email Delivery" value={`${data?.emailSuccessRate || 0}%`} subtitle="Success Rate" />
-        </div>
-
-        {/* CHARTS GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-          
-          {/* BAR CHART */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">6-Month Payroll Trend</h3>
-            <div className="h-[300px] w-full">
-              {data?.sixMonthTrend && data.sixMonthTrend.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.sixMonthTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value/1000}k`} />
-                    <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Bar dataKey="cost" fill="#2563eb" radius={[4, 4, 0, 0]} barSize={40} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-400 font-medium">No trend data available</div>
-              )}
-            </div>
-          </div>
-
-          {/* PIE CHART */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-6">Cost by Designation</h3>
-            <div className="h-[300px] w-full">
-              {data?.departmentCostBreakdown && data.departmentCostBreakdown.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={data.departmentCostBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={80}
-                      outerRadius={110}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {data.departmentCostBreakdown.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value: any) => `$${Number(value).toLocaleString()}`} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-gray-400 font-medium">No department data available</div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
