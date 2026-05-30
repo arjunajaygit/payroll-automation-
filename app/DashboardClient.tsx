@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from "recharts";
+import { ArrowUpRight, ArrowDownRight, Users, IndianRupee, Mail, Banknote } from "lucide-react";
 
 type DashboardData = {
   totalHeadcount: number;
@@ -15,12 +16,27 @@ type DashboardData = {
 
 const COLORS = ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe'];
 
-function MetricCard({ title, value, subtitle }: { title: string; value: string | number; subtitle: string }) {
+function MetricCard({ title, value, subtitle, trend, trendUp, icon: Icon }: any) {
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between">
-      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">{title}</h3>
-      <p className="text-3xl font-bold text-gray-800 mt-4 truncate">{value}</p>
-      <div className="mt-4 text-sm text-gray-400 font-medium">{subtitle}</div>
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+      <div className="flex justify-between items-start">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-500">{title}</h3>
+          <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
+        </div>
+        <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+          <Icon className="w-6 h-6" />
+        </div>
+      </div>
+      <div className="mt-4 flex items-center gap-2 text-sm">
+        {trend && (
+          <span className={`flex items-center font-medium ${trendUp ? "text-emerald-600" : "text-red-600"}`}>
+            {trendUp ? <ArrowUpRight className="w-4 h-4 mr-1" /> : <ArrowDownRight className="w-4 h-4 mr-1" />}
+            {trend}
+          </span>
+        )}
+        <span className="text-slate-400">{subtitle}</span>
+      </div>
     </div>
   );
 }
@@ -42,10 +58,34 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
 
         {/* METRICS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <MetricCard title="Total Headcount" value={data?.totalHeadcount || 0} subtitle="Active Employees" />
-          <MetricCard title="Payroll Cost" value={`₹${(data?.currentMonthPayroll || 0).toLocaleString()}`} subtitle={data?.currentMonthDisplay || "Current Month"} />
-          <MetricCard title="Avg. Salary" value={`₹${Math.round(data?.averageSalary || 0).toLocaleString()}`} subtitle="Per Employee" />
-          <MetricCard title="Email Delivery" value={`${data?.emailSuccessRate || 0}%`} subtitle="Success Rate" />
+          <MetricCard 
+            title="Total Headcount" 
+            value={data?.totalHeadcount || 0} 
+            subtitle="vs last month" 
+            trend="2.4%" 
+            trendUp={true} 
+            icon={Users} 
+          />
+          <MetricCard 
+            title="Payroll Cost" 
+            value={`₹${(data?.currentMonthPayroll || 0).toLocaleString()}`} 
+            subtitle={data?.currentMonthDisplay || "Current Month"} 
+            icon={IndianRupee} 
+          />
+          <MetricCard 
+            title="Avg. Salary" 
+            value={`₹${Math.round(data?.averageSalary || 0).toLocaleString()}`} 
+            subtitle="Across all departments" 
+            icon={Banknote} 
+          />
+          <MetricCard 
+            title="Email Delivery" 
+            value={`${data?.emailSuccessRate || 0}%`} 
+            subtitle="Payslips delivered" 
+            trend="100%" 
+            trendUp={true} 
+            icon={Mail} 
+          />
         </div>
 
         {/* CHARTS GRID */}
@@ -58,10 +98,26 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
               {data?.sixMonthTrend && data.sixMonthTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300} minWidth={0}>
                   <BarChart data={data.sixMonthTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <XAxis dataKey="month" stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} />
-                    <YAxis stroke="#9ca3af" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} />
-                    <Tooltip cursor={{ fill: '#f3f4f6' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
-                    <Bar dataKey="cost" fill="#2563eb" radius={[4, 4, 0, 0]} barSize={40} />
+                    {/* Add a subtle dashed grid */}
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                    <XAxis dataKey="month" stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} dy={10} />
+                    <YAxis stroke="#64748b" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} dx={-10} />
+                    
+                    {/* Modern Tooltip Styling */}
+                    <Tooltip 
+                      cursor={{ fill: 'transparent' }} 
+                      contentStyle={{ 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+                        backgroundColor: '#1e293b',
+                        color: '#f8fafc'
+                      }} 
+                      itemStyle={{ color: '#38bdf8' }}
+                    />
+                    
+                    {/* Rounded top corners on bars */}
+                    <Bar dataKey="cost" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={50} />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (

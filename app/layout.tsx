@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { cookies } from "next/headers";
 import "./globals.css";
-import TopNav from "./TopNav";
+import "./globals.css";
+import Sidebar from "./components/Sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,8 +35,12 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
-        {session && <TopNav />}
-        <main className="flex-1">{children}</main>
+        {session && <Sidebar />}
+        <main className={`flex-1 min-w-0 ${session ? "ml-64" : ""}`}>
+          <div className="h-full">
+            {children}
+          </div>
+        </main>
         <Toaster position="top-right" />
       </body>
     </html>
