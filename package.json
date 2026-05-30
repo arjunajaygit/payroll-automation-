@@ -29,6 +29,7 @@
     "react-hot-toast": "^2.6.0",
     "recharts": "^3.8.1",
     "resend": "^6.12.4",
+    "tsx": "^4.22.3",
     "uuid": "^14.0.0"
   },
   "devDependencies": {
