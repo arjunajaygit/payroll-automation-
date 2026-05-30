@@ -23,6 +23,9 @@ const connection = new IORedis(process.env.REDIS_URL || 'redis://127.0.0.1:6379'
   maxRetriesPerRequest: null,
 });
 
+connection.on('error', (err) => console.error('Redis Client Error (Worker):', err.message));
+connection.on('connect', () => console.log('Redis Client Connected Successfully (Worker)!'));
+
 const worker = new Worker(
   'payroll',
   async (job) => {
