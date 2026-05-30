@@ -155,6 +155,12 @@ export default function Dashboard() {
              const statusStr = statusData.progress?.state || "Processing...";
              setJobState({ active: true, percent, status: statusStr });
            }
+         } else {
+           // Job not found or API error (e.g., evicted by Redis)
+           clearInterval(interval);
+           setJobState(null);
+           setIsProcessing(false);
+           toast.error("Lost connection to processing queue (Job evicted).");
          }
       }, 1500);
 
