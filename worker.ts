@@ -163,3 +163,15 @@ worker.on('failed', (job, err) => {
 });
 
 console.log("🚀 BullMQ Worker running and listening for jobs...");
+
+// --- RENDER FREE TIER HACK ---
+// Render requires "Web Services" to bind to a port, otherwise they crash.
+// By adding this tiny dummy server, you can deploy this worker as a Free Web Service!
+import http from 'http';
+const port = process.env.PORT || 8080;
+http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("Worker is healthy and running!");
+}).listen(port, () => {
+  console.log(`✅ Dummy health server listening on port ${port} to satisfy Render Web Service requirements.`);
+});
