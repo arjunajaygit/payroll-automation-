@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "react-hot-toast";
+import Link from "next/link";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -27,7 +29,22 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+        <nav className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-md">
+          <div className="flex items-center gap-2">
+            <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span className="font-bold text-xl tracking-tight">PayrollPro</span>
+          </div>
+          <div className="space-x-6 text-sm font-medium">
+            <Link href="/" className="hover:text-blue-400 transition">Dashboard</Link>
+            <Link href="/payroll" className="hover:text-blue-400 transition">Run Payroll</Link>
+            <Link href="/employees" className="hover:text-blue-400 transition">Directory</Link>
+            <Link href="/logs" className="hover:text-blue-400 transition">Email Logs</Link>
+          </div>
+        </nav>
+        <main className="flex-1">{children}</main>
+        <Toaster position="top-right" />
+      </body>
     </html>
   );
 }
