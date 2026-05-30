@@ -58,7 +58,11 @@ export async function GET(request: Request) {
     const fontBuffer = Buffer.from(await fontRes.arrayBuffer());
     const boldFontBuffer = Buffer.from(await boldFontRes.arrayBuffer());
 
-    const pdfBuffer = await generateSecurePDF(mergedEmployee, fontBuffer, boldFontBuffer, !isPreview);
+    const host = request.headers.get("host") || "localhost:3000";
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const baseUrl = `${protocol}://${host}`;
+
+    const pdfBuffer = await generateSecurePDF(mergedEmployee, fontBuffer, boldFontBuffer, !isPreview, baseUrl);
 
     const headers = new Headers();
     headers.set("Content-Type", "application/pdf");

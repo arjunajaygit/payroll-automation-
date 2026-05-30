@@ -98,7 +98,14 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                   <BarChart data={data.sixMonthTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                     <XAxis dataKey="month" stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} dy={10} />
-                    <YAxis stroke="#94a3b8" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value/1000}k`} dx={-10} />
+                    <YAxis 
+                      stroke="#94a3b8" 
+                      fontSize={12} 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tickFormatter={(value) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', notation: 'compact', maximumFractionDigits: 1 }).format(value)} 
+                      dx={-10} 
+                    />
                     <Tooltip
                       cursor={{ fill: 'transparent' }}
                       contentStyle={{

@@ -1,12 +1,55 @@
 import PDFDocument from "pdfkit";
+import QRCode from "qrcode";
 
-export async function generateSecurePDF(employee: any, fontBuffer: Buffer, boldFontBuffer: Buffer, isSecure: boolean = true): Promise<Buffer> {
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+function inr(value: number): string {
+  return `\u20b9${value.toLocaleString("en-IN")}`;
+}
+
+function slugId(employee: any): string {
+  const shortMonth = employee.month.slice(0, 3).toUpperCase();
+  const hash = Math.abs(
+    (employee.employeeId + employee.month + employee.year)
+      .split("")
+      .reduce((acc: number, c: string) => acc * 31 + c.charCodeAt(0), 0)
+  )
+    .toString(16)
+    .toUpperCase()
+    .slice(0, 6);
+  return `SLIP-${employee.employeeId}-${shortMonth}${employee.year}-${hash}`;
+}
+
+// ─── Main Export ───────────────────────────────────────────────────────────
+
+export async function generateSecurePDF(
+  employee: any,
+  fontBuffer: Buffer,
+  boldFontBuffer: Buffer,
+  isSecure: boolean = true,
+  baseUrl: string = "http://localhost:3000"
+): Promise<Buffer> {
+  const slipId = slugId(employee);
+
+  // --- Generate Verification URL ---
+  const verificationUrl = `${baseUrl}/verify?id=${encodeURIComponent(slipId)}&name=${encodeURIComponent(employee.name)}&empId=${encodeURIComponent(employee.employeeId)}&period=${encodeURIComponent(`${employee.month} ${employee.year}`)}`;
+  
+  const qrDataUrl: string = await QRCode.toDataURL(verificationUrl, {
+    width: 120,
+    margin: 1,
+    color: { dark: "#0f172a", light: "#ffffff" },
+  });
+  const qrBuffer = Buffer.from(qrDataUrl.split(",")[1], "base64");
+
   return new Promise((resolve, reject) => {
-    
     const pdfOptions: any = {
-      permissions: { printing: "highResolution" },
-      margin: 50,
-      size: 'A4'
+      margins: { top: 0, bottom: 0, left: 0, right: 0 },
+      size: "A4",
+      info: {
+        Title: `Payslip - ${employee.name} - ${employee.month} ${employee.year}`,
+        Author: "PayrollPro",
+        Subject: "Salary Payslip",
+      },
     };
 
     if (isSecure) {
@@ -14,131 +57,156 @@ export async function generateSecurePDF(employee: any, fontBuffer: Buffer, boldF
       const password = `${namePart}${employee.birthYear}`;
       pdfOptions.userPassword = password;
       pdfOptions.ownerPassword = password;
+      pdfOptions.permissions = { printing: "highResolution" };
     }
 
     const doc = new PDFDocument(pdfOptions);
-
     const buffers: Buffer[] = [];
     doc.on("data", buffers.push.bind(buffers));
     doc.on("end", () => resolve(Buffer.concat(buffers)));
     doc.on("error", reject);
 
-    doc.registerFont("CustomRoboto", fontBuffer);
-    doc.registerFont("CustomRobotoBold", boldFontBuffer);
+    doc.registerFont("Regular", fontBuffer);
+    doc.registerFont("Bold", boldFontBuffer);
 
-    // --- 1. HEADER SECTION ---
-    doc.fontSize(24).font("CustomRobotoBold").fillColor('#1e3a8a').text("Company Name Inc.", { align: "center" });
-    doc.fontSize(10).font("CustomRoboto").fillColor('#6b7280').text("123 Tech Boulevard, Silicon Valley, CA 94025", { align: "center" });
-    doc.moveDown(2);
-    
-    doc.fontSize(16).font("CustomRobotoBold").fillColor('#111827').text("PAYSLIP", { align: "center", underline: true });
-    doc.moveDown(1.5);
+    const W = 595.28; // A4 width
+    const H = 841.89; // A4 height
 
-    // --- 2. EMPLOYEE DETAILS BOX ---
-    doc.rect(50, doc.y, 495, 65).strokeColor('#d1d5db').lineWidth(1).stroke(); // Draw a border box
-    const detailsY = doc.y + 10;
+    // ─── 1. CLEAN HEADER ─────────────────────────────────────────────────────
+    // Draw the Logo SVG Path
+    const logoX = 48;
+    const logoY = 40;
+    doc.save()
+       .translate(logoX, logoY)
+       .scale(1.8)
+       .path("M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z")
+       .lineWidth(2)
+       .strokeColor("#3b82f6")
+       .stroke()
+       .restore();
+
+    doc.fontSize(22).font("Bold").fillColor("#0f172a").text("PayrollPro", logoX + 54, logoY + 12);
+    doc.fontSize(9).font("Regular").fillColor("#64748b").text("Automated Payroll System", logoX + 54, logoY + 36);
+
+    // Document Title
+    doc.fontSize(24).font("Bold").fillColor("#0f172a").text("PAYSLIP", 0, logoY + 12, { align: "right", width: W - 48 });
+    doc.fontSize(10).font("Regular").fillColor("#64748b").text(`${employee.month.toUpperCase()} ${employee.year}`, 0, logoY + 38, { align: "right", width: W - 48 });
+
+    // Divider Line
+    doc.moveTo(48, 110).lineTo(W - 48, 110).lineWidth(1).strokeColor("#e2e8f0").stroke();
+
+    // ─── 2. EMPLOYEE SUMMARY ────────────────────────────────────────────────
+    const yInfo = 130;
     
-    doc.fontSize(10).font("CustomRobotoBold").fillColor('#374151');
+    doc.fontSize(9).font("Regular").fillColor("#64748b").text("EMPLOYEE DETAILS", 48, yInfo);
+    
     // Left column
-    doc.text("Employee ID:", 65, detailsY);
-    doc.text("Name:", 65, detailsY + 15);
-    doc.text("Designation:", 65, detailsY + 30);
-    // Left column values
-    doc.font("CustomRoboto").fillColor('#111827');
-    doc.text(employee.employeeId, 140, detailsY);
-    doc.text(employee.name, 140, detailsY + 15);
-    doc.text(employee.designation, 140, detailsY + 30);
+    doc.fontSize(12).font("Bold").fillColor("#0f172a").text(employee.name, 48, yInfo + 18);
+    doc.fontSize(10).font("Regular").fillColor("#475569").text(`ID: ${employee.employeeId}`, 48, yInfo + 34);
+    doc.fontSize(10).font("Regular").fillColor("#475569").text(employee.designation, 48, yInfo + 48);
 
     // Right column
-    doc.font("CustomRobotoBold").fillColor('#374151');
-    doc.text("Pay Period:", 350, detailsY);
-    doc.text("Generated On:", 350, detailsY + 15);
-    // Right column values
-    doc.font("CustomRoboto").fillColor('#111827');
-    doc.text(`${employee.month} ${employee.year}`, 425, detailsY);
-    doc.text(new Date().toLocaleDateString(), 425, detailsY + 15);
-
-    doc.y = detailsY + 70; // Move cursor below the box
-
-    // --- 3. SALARY TABLE HEADER ---
-    doc.fillColor('#f3f4f6').rect(50, doc.y, 495, 25).fill(); // Grey background
-    const tableHeaderY = doc.y + 7;
+    doc.fontSize(9).font("Regular").fillColor("#64748b").text("PAYMENT INFO", 320, yInfo);
+    doc.fontSize(10).font("Regular").fillColor("#475569").text(`Period: ${employee.month} ${employee.year}`, 320, yInfo + 18);
     
-    doc.fontSize(11).font("CustomRobotoBold").fillColor('#111827');
-    doc.text("Earnings & Deductions", 65, tableHeaderY);
-    doc.text("Amount (Rs.)", 400, tableHeaderY, { width: 130, align: "right" });
+    const genDate = new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" });
+    doc.fontSize(10).font("Regular").fillColor("#475569").text(`Generated: ${genDate}`, 320, yInfo + 34);
+    doc.fontSize(10).font("Regular").fillColor("#475569").text(`Status: Paid`, 320, yInfo + 48);
+
+    // ─── 3. EARNINGS & DEDUCTIONS (Simple Layout) ───────────────────────────
+    const yTable = 230;
+
+    // Table Headers
+    doc.rect(48, yTable, W - 96, 30).fill("#f8fafc");
+    doc.fontSize(9).font("Bold").fillColor("#475569");
+    doc.text("EARNINGS", 60, yTable + 10);
+    doc.text("AMOUNT", 200, yTable + 10, { width: 80, align: "right" });
     
-    doc.y = tableHeaderY + 25;
+    doc.text("DEDUCTIONS", 320, yTable + 10);
+    doc.text("AMOUNT", 460, yTable + 10, { width: 70, align: "right" });
 
-    // --- 4. SALARY ROWS (Perfectly Aligned) ---
-    const drawRow = (label: string, amount: number, isDeduction = false) => {
-      doc.fontSize(10).font("CustomRoboto").fillColor('#374151');
-      doc.text(label, 65, doc.y);
-      
-      const amountStr = isDeduction ? `- ${amount.toLocaleString()}` : amount.toLocaleString();
-      const color = isDeduction ? '#ef4444' : '#111827'; // Red for deductions
-      
-      doc.font("CustomRoboto").fillColor(color);
-      // We use a fixed width of 130 and align right so the decimals line up perfectly
-      doc.text(amountStr, 400, doc.y - 12, { width: 130, align: "right" }); 
-      doc.moveDown(0.8);
-    };
+    // Rows
+    const yRow1 = yTable + 40;
+    const yRow2 = yRow1 + 25;
+    const yRow3 = yRow2 + 25;
 
-    drawRow("Base Salary", employee.baseSalary);
-    drawRow("House Rent Allowance (HRA)", employee.hra);
-    drawRow("Special Allowances", employee.allowances);
-    drawRow("Tax & Deductions", employee.deductions, true);
+    doc.fontSize(10).font("Regular").fillColor("#0f172a");
 
-    doc.moveDown(1);
+    // Earnings Column
+    doc.text("Basic Salary", 60, yRow1);
+    doc.text(inr(employee.baseSalary), 200, yRow1, { width: 80, align: "right" });
 
-    // --- 5. NET SALARY BOX ---
-    doc.fillColor('#dcfce7').rect(50, doc.y, 495, 35).fill(); // Light green background
-    const netY = doc.y + 10;
+    doc.text("House Rent Allowance", 60, yRow2);
+    doc.text(inr(employee.hra), 200, yRow2, { width: 80, align: "right" });
+
+    doc.text("Special Allowances", 60, yRow3);
+    doc.text(inr(employee.allowances), 200, yRow3, { width: 80, align: "right" });
+
+    // Deductions Column
+    doc.text("Statutory Deductions", 320, yRow1);
+    doc.text(inr(employee.deductions), 460, yRow1, { width: 70, align: "right" });
+
+    // Totals Line
+    const yTotalLine = yRow3 + 30;
+    doc.moveTo(48, yTotalLine).lineTo(W - 48, yTotalLine).lineWidth(1).strokeColor("#e2e8f0").stroke();
+
+    const yTotals = yTotalLine + 15;
+    const grossEarnings = employee.baseSalary + employee.hra + employee.allowances;
+
+    doc.fontSize(10).font("Bold").fillColor("#0f172a");
+    doc.text("Gross Earnings", 60, yTotals);
+    doc.text(inr(grossEarnings), 200, yTotals, { width: 80, align: "right" });
+
+    doc.text("Total Deductions", 320, yTotals);
+    doc.text(inr(employee.deductions), 460, yTotals, { width: 70, align: "right" });
+
+    // ─── 4. NET PAY HIGHLIGHT ───────────────────────────────────────────────
+    const yNetBox = yTotals + 50;
+    doc.rect(48, yNetBox, W - 96, 60).fill("#eff6ff");
     
-    doc.fontSize(12).font("CustomRobotoBold").fillColor('#166534'); // Dark green text
-    doc.text("NET PAYABLE SALARY:", 65, netY);
-    doc.text(`Rs. ${employee.netSalary.toLocaleString()}`, 400, netY, { width: 130, align: "right" });
+    doc.fontSize(12).font("Bold").fillColor("#1e40af").text("NET PAYABLE AMOUNT", 70, yNetBox + 22);
+    doc.fontSize(20).font("Bold").fillColor("#1e40af").text(inr(employee.netSalary), 0, yNetBox + 18, { align: "right", width: W - 70 });
 
-    // --- 5.5. PREVIEW WATERMARK ---
-    // If it's an unsecured preview, stamp the blank space
+    // Amount in words (simplified)
+    doc.fontSize(9).font("Regular").fillColor("#3b82f6").text(`Slip ID: ${slipId}`, 70, yNetBox + 38);
+
+    // ─── 5. VERIFICATION & SIGNATURE (Organized Side-by-Side) ────────────────
+    const yFooterInfo = yNetBox + 100;
+
+    // QR Verification Block
+    doc.rect(48, yFooterInfo, 80, 80).strokeColor("#e2e8f0").lineWidth(1).stroke();
+    doc.image(qrBuffer, 49, yFooterInfo + 1, { width: 78, height: 78 });
+    
+    doc.fontSize(10).font("Bold").fillColor("#0f172a").text("Scan to Verify", 140, yFooterInfo + 10);
+    doc.fontSize(9).font("Regular").fillColor("#64748b").text("Scan this QR code with your mobile device to verify the authenticity of this document online.", 140, yFooterInfo + 26, { width: 160 });
+
+    // Signature Block
+    const sigX = 350;
+    doc.moveTo(sigX, yFooterInfo + 60).lineTo(W - 48, yFooterInfo + 60).lineWidth(1).strokeColor("#94a3b8").stroke();
+    doc.fontSize(10).font("Bold").fillColor("#0f172a").text("Authorized Signature", sigX, yFooterInfo + 70, { align: "center", width: W - 48 - sigX });
+    
+    // ─── 6. PREVIEW WATERMARK ───────────────────────────────────────────────
     if (!isSecure) {
-      doc.fontSize(50)
-         .font("CustomRobotoBold")
-         .fillColor('#ef4444') // Red
-         .opacity(0.15)       // Faded
-         .text("PREVIEW ONLY", 50, 480, { 
-            width: 495, 
-            align: 'center' 
-         });
-         
-      // CRITICAL: Reset opacity back to 1 so the footer doesn't get faded out!
-      doc.opacity(1); 
+      doc
+        .save()
+        .translate(W / 2, H / 2)
+        .rotate(-45)
+        .fontSize(80)
+        .font("Bold")
+        .fillColor("#cbd5e1")
+        .fillOpacity(0.3)
+        .text("PREVIEW", -180, -40)
+        .restore()
+        .fillOpacity(1);
     }
 
-    // --- 6. FOOTER ---
-    doc.y = 700;
+    // ─── 7. SIMPLE FOOTER ───────────────────────────────────────────────────
+    doc.moveTo(48, H - 60).lineTo(W - 48, H - 60).lineWidth(1).strokeColor("#e2e8f0").stroke();
+    doc.fontSize(8).font("Regular").fillColor("#94a3b8").text(
+      "This is a system-generated document. It does not require a physical signature.",
+      48, H - 45, { align: "center", width: W - 96 }
+    );
 
-    // Top line
-    doc.moveTo(50, doc.y)
-       .lineTo(545, doc.y)
-       .strokeColor('#d1d5db')
-       .stroke();
-
-    doc.moveDown(1);
-
-    // Footer text
-    doc.fontSize(9)
-       .font("CustomRoboto")
-       .fillColor('#9ca3af')
-       .text(
-          "This is a computer-generated document. No signature is required. For any discrepancies, please contact HR immediately.",
-          50, // x position
-          doc.y, // y position
-          {
-            width: 495,
-            align: "center"
-          }
-       );
     doc.end();
   });
 }
