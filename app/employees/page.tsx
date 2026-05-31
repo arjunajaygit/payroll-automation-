@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { validateEmployeeCSV } from "../../lib/csvValidation";
 
 export default function EmployeeDirectory() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<string[]>([]);
+  const [jobState, setJobState] = useState<{ active: boolean; percent: number; status: string } | null>(null);
 
   const fetchEmployees = async () => {
     setIsLoading(true);
@@ -70,6 +72,9 @@ export default function EmployeeDirectory() {
           return;
         }
 
+        setJobState({ active: true, percent: 50, status: "Synchronizing database records..." });
+        const loadingToast = toast.loading('Uploading and validating employee data...');
+
         const response = await fetch("/api/employees", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -77,11 +82,16 @@ export default function EmployeeDirectory() {
         });
 
         if (response.ok) {
-          alert("Employee database synchronized successfully.");
+          setJobState({ active: false, percent: 100, status: "Completed successfully! ✅" });
+          toast.success("Employee database synchronized successfully!", { id: loadingToast });
           fetchEmployees();
           setErrors([]);
+          setTimeout(() => {
+             setJobState(null);
+          }, 3000);
         } else {
-          alert("Failed to synchronize database. Please verify your file format.");
+          toast.error("Failed to synchronize database. Please verify your file format.", { id: loadingToast });
+          setJobState(null);
         }
       },
     });
@@ -148,8 +158,37 @@ export default function EmployeeDirectory() {
           </div>
         )}
 
+        {/* PROGRESS BAR */}
+        {jobState && (
+          <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-6">
+            <div className="flex justify-center items-center mb-4">
+              {jobState.percent < 100 ? (
+                <div className="w-10 h-10 border-[3px] border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+              )}
+            </div>
+            
+            <h2 className="text-xl font-bold text-slate-900">
+              {jobState.percent < 100 ? "Updating Employee Database..." : "All Done!"}
+            </h2>
+            <p className="text-blue-600 font-medium text-sm">{jobState.status}</p>
+            
+            <div className="w-full bg-slate-100 rounded-full h-4 overflow-hidden">
+              <div 
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-4 rounded-full transition-all duration-700 ease-out flex items-center justify-end pr-2"
+                style={{ width: `${Math.max(jobState.percent, 5)}%` }}
+              >
+                <span className="text-[10px] font-bold text-white">{jobState.percent}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Employee Table */}
-        {employees.length === 0 ? (
+        {!jobState && employees.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-16 text-center">
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-5">
@@ -159,7 +198,7 @@ export default function EmployeeDirectory() {
               <p className="mt-2 text-sm text-slate-400 max-w-sm">Please upload a master CSV file to initialize the employee database.</p>
             </div>
           </div>
-        ) : (
+        ) : !jobState && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-slate-200">
