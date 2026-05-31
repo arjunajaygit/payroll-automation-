@@ -46,20 +46,26 @@ export default function AccessibilityModal({ onClose }: { onClose: () => void })
             </label>
           </div>
 
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-slate-900">Large Text</p>
-              <p className="text-sm text-slate-500">Increases the base font size by 10%.</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-slate-900">Text Scaling</p>
+                <p className="text-sm text-slate-500">Adjust the global font size ({settings.fontSizeScaling}%).</p>
+              </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-medium text-slate-400">A</span>
               <input 
-                type="checkbox" 
-                className="sr-only peer" 
-                checked={settings.largeText}
-                onChange={(e) => updateSetting("largeText", e.target.checked)}
+                type="range" 
+                min="90" 
+                max="150" 
+                step="5"
+                value={settings.fontSizeScaling}
+                onChange={(e) => updateSetting("fontSizeScaling", parseInt(e.target.value))}
+                className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
               />
-              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-            </label>
+              <span className="text-xl font-medium text-slate-600">A</span>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">

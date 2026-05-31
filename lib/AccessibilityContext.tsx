@@ -4,18 +4,18 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface AccessibilitySettings {
   highContrast: boolean;
-  largeText: boolean;
+  fontSizeScaling: number; // 100 to 150
   reduceMotion: boolean;
 }
 
 interface AccessibilityContextType {
   settings: AccessibilitySettings;
-  updateSetting: (key: keyof AccessibilitySettings, value: boolean) => void;
+  updateSetting: <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => void;
 }
 
 const defaultSettings: AccessibilitySettings = {
   highContrast: false,
-  largeText: false,
+  fontSizeScaling: 100,
   reduceMotion: false,
 };
 
@@ -31,7 +31,12 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     const saved = localStorage.getItem("accessibility-settings");
     if (saved) {
       try {
-        setSettings(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setSettings({
+          highContrast: parsed.highContrast ?? defaultSettings.highContrast,
+          fontSizeScaling: parsed.fontSizeScaling ?? defaultSettings.fontSizeScaling,
+          reduceMotion: parsed.reduceMotion ?? defaultSettings.reduceMotion,
+        });
       } catch (e) {
         console.error("Failed to parse accessibility settings", e);
       }
@@ -52,13 +57,9 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
       body.classList.remove("theme-high-contrast");
     }
 
-    // Large Text (usually applied to HTML for rem scaling, but body is fine if we use CSS vars or explicit rules)
+    // Font Size Scaling
     const html = document.documentElement;
-    if (settings.largeText) {
-      html.classList.add("theme-large-text");
-    } else {
-      html.classList.remove("theme-large-text");
-    }
+    html.style.fontSize = `${settings.fontSizeScaling}%`;
 
     // Reduce Motion
     if (settings.reduceMotion) {
@@ -68,7 +69,7 @@ export function AccessibilityProvider({ children }: { children: React.ReactNode 
     }
   }, [settings, mounted]);
 
-  const updateSetting = (key: keyof AccessibilitySettings, value: boolean) => {
+  const updateSetting = <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => {
     setSettings((prev) => ({ ...prev, [key]: value }));
   };
 
