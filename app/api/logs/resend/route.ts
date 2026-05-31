@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { requireAuth } from "../../../../lib/auth";
 import { transporter } from "../../../../lib/mailer";
-import { buildPayslipEmailHtml } from "../../../../lib/emailTemplate";
+import { buildPayslipEmailHtml, buildPayslipEmailText } from "../../../../lib/emailTemplate";
 import { getFontBuffers } from "../../../../lib/fonts";
 import { generateSecurePDF } from "../../../../lib/pdf";
 
@@ -68,10 +68,11 @@ export async function POST(request: Request) {
     const pdfBuffer = await generateSecurePDF(employeeData, fonts.regular, fonts.bold);
 
     const mailOptions = {
-      from: `"PayrollPro System" <${process.env.GMAIL_USER}>`,
+      from: '"PayrollPro" <arjundbpro@gmail.com>',
       to: employee.email,
-      subject: `Salary Document: ${salary.month} ${salary.year}`,
+      subject: `Your Salary Slip for ${salary.month} ${salary.year}`,
       html: buildPayslipEmailHtml(employee.name, salary.month, salary.year),
+      text: buildPayslipEmailText(employee.name, salary.month, salary.year),
       attachments: [
         {
           filename: `${employee.name}_SalarySlip_${salary.month}_${salary.year}.pdf`,
