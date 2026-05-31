@@ -9,14 +9,30 @@ export async function GET() {
     const session = await requireAuth();
     const adminId = session.userId;
     
-    const employees = await prisma.employee.findMany({
+    const employeesDB = await prisma.employee.findMany({
       where: { adminId },
       include: {
-        salaries: {
-          orderBy: { createdAt: "desc" },
-          take: 1,
-        },
+        salaries: true,
       },
+    });
+
+    const getMonthIndex = (monthStr: string) => {
+      const m = monthStr.toLowerCase().substring(0, 3);
+      return monthOrder.findIndex(mo => mo.toLowerCase().startsWith(m));
+    };
+
+    const employees = employeesDB.map((emp: any) => {
+      const sortedSalaries = [...emp.salaries].sort((a, b) => {
+        if (a.year !== b.year) {
+          return b.year - a.year; 
+        }
+        return getMonthIndex(b.month) - getMonthIndex(a.month);
+      });
+
+      return {
+        ...emp,
+        salaries: sortedSalaries.length > 0 ? [sortedSalaries[0]] : []
+      };
     });
 
     return NextResponse.json(employees);
