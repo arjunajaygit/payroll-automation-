@@ -3,8 +3,7 @@ import { prisma } from "../../../../lib/prisma";
 import { requireAuth } from "../../../../lib/auth";
 import { generateSecurePDF } from "../../../../lib/pdf";
 import { getFontBuffers } from "../../../../lib/fonts";
-const archiver = require("archiver");
-import { PassThrough } from "stream";
+import JSZip from "jszip";
 
 // Set maximum duration for this API route if hosted on Vercel
 export const maxDuration = 60;
@@ -40,63 +39,37 @@ export async function GET(request: Request) {
     const regularFont = fonts.regular;
     const boldFont = fonts.bold;
 
-    const archive = archiver.create('zip', {
-      zlib: { level: 5 } // Standard compression
+    const zip = new JSZip();
+
+    // Generate PDFs sequentially and add them to the zip
+    for (const salary of salaries) {
+      const employeeData = {
+        ...salary.employee,
+        baseSalary: salary.baseSalary,
+        hra: salary.hra,
+        allowances: salary.allowances,
+        deductions: salary.deductions,
+        netSalary: salary.netSalary,
+        month: salary.month,
+        year: salary.year
+      };
+
+      const pdfBuffer = await generateSecurePDF(employeeData, regularFont, boldFont, true);
+      
+      // Naming convention: EMP001_Arjun_May2026.pdf
+      const fileName = `${salary.employee.employeeId}_${salary.employee.name.replace(/[^a-zA-Z0-9]/g, '_')}_${salary.month}${salary.year}.pdf`;
+      
+      zip.file(fileName, pdfBuffer);
+    }
+
+    // Generate the zip file buffer
+    const zipBuffer = await zip.generateAsync({ 
+      type: "nodebuffer",
+      compression: "DEFLATE",
+      compressionOptions: { level: 5 }
     });
 
-    const passThrough = new PassThrough();
-    archive.pipe(passThrough);
-
-    // Process PDFs asynchronously and add to archive
-    const processPDFs = async () => {
-      try {
-        // Generate PDFs sequentially to avoid memory spikes
-        for (const salary of salaries) {
-          const employeeData = {
-            ...salary.employee,
-            baseSalary: salary.baseSalary,
-            hra: salary.hra,
-            allowances: salary.allowances,
-            deductions: salary.deductions,
-            netSalary: salary.netSalary,
-            month: salary.month,
-            year: salary.year
-          };
-
-          const pdfBuffer = await generateSecurePDF(employeeData, regularFont, boldFont, true);
-          
-          // Naming convention: EMP001_Arjun_May2026.pdf
-          const fileName = `${salary.employee.employeeId}_${salary.employee.name.replace(/[^a-zA-Z0-9]/g, '_')}_${salary.month}${salary.year}.pdf`;
-          
-          archive.append(pdfBuffer, { name: fileName });
-        }
-        await archive.finalize();
-      } catch (err) {
-        console.error("Error generating PDFs for ZIP:", err);
-        archive.abort();
-      }
-    };
-
-    // Start processing in the background while returning the stream
-    processPDFs();
-
-    // Convert Node stream to Web stream
-    // Using any because Node's ReadableStream is not fully compatible with Web ReadableStream in TypeScript types
-    const stream = new ReadableStream({
-      start(controller) {
-        passThrough.on('data', (chunk) => {
-          controller.enqueue(new Uint8Array(chunk));
-        });
-        passThrough.on('end', () => {
-          controller.close();
-        });
-        passThrough.on('error', (err) => {
-          controller.error(err);
-        });
-      }
-    });
-
-    return new NextResponse(stream, {
+    return new NextResponse(zipBuffer, {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="payslips_${month}_${year}.zip"`,
