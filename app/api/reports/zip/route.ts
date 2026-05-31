@@ -40,7 +40,7 @@ export async function GET(request: Request) {
     const regularFont = fonts.regular;
     const boldFont = fonts.bold;
 
-    const archive = archiver('zip', {
+    const archive = archiver.create('zip', {
       zlib: { level: 5 } // Standard compression
     });
 
