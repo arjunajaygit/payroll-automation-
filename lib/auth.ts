@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 const secretKey = process.env.JWT_SECRET || "default_super_secret_key_change_me_in_production";
 const key = new TextEncoder().encode(secretKey);
 
-// 1 Hour expiration
 const EXPIRATION_TIME = 60 * 60; 
 
 export async function encrypt(payload: any) {

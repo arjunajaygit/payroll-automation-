@@ -7,7 +7,6 @@ import Papa from "papaparse";
 import toast from "react-hot-toast";
 import { validateSalaryCSV } from "../../lib/csvValidation";
 
-// Type Definitions based on your exact schema
 type EmployeeRecord = {
   employeeId: string;
   name: string;
@@ -36,12 +35,12 @@ export default function Dashboard() {
   const [jobState, setJobState] = useState<{ active: boolean; percent: number; status: string } | null>(null);
 
   useEffect(() => {
-    // Automatically load the employee database on mount
+    
     fetch("/api/employees")
       .then((res) => res.json())
       .then((data) => {
         setEmployeeDB(data);
-        // Only proceed to step 2 if the database is actually populated
+        
         if (data && data.length > 0) {
           setStep(2); 
         } else {
@@ -51,7 +50,6 @@ export default function Dashboard() {
       });
   }, []);
 
-  // CSV Download Helpers
   const downloadEmployeeSample = () => {
     const csvContent = "data:text/csv;charset=utf-8,employeeId,name,email,designation,birthYear\nEMP001,Arjun,arjun@example.com,Software Engineer,2003\nEMP002,Rahul,rahul@example.com,UI Designer,2002";
     const encodedUri = encodeURI(csvContent);
@@ -73,8 +71,6 @@ export default function Dashboard() {
     link.click();
     link.remove();
   };
-
-  // Upload Handlers
 
   const onDropSalary = (acceptedFiles: File[], fileRejections: any[]) => {
     setErrors([]);
@@ -143,11 +139,10 @@ export default function Dashboard() {
     }
   };
 
-  // master upload moved to Employee Directory; only keep salary dropzone here
   const dropzoneSalary = useDropzone({ 
     onDrop: onDropSalary, 
     accept: { "text/csv": [".csv"] },
-    maxSize: 5242880 // 5MB limit
+    maxSize: 5242880 
   });
 
   if (isLoading) {
@@ -165,7 +160,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
         
-        {/* Page Header */}
+        {}
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Process Payroll</h1>
@@ -181,7 +176,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Master DB Status */}
+        {}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
           {employeeDB.length > 0 ? (
             <div className="flex justify-between items-center">
@@ -201,9 +196,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        
-
-        {/* STEP 1: Empty State */}
+        {}
         {step === 1 && (
           <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
             <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
@@ -222,7 +215,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* STEP 2: Salary Upload */}
+        {}
         {step === 2 && (
           <div className={`p-6 bg-white rounded-2xl shadow-sm border ${payroll.length > 0 ? 'border-slate-200' : 'border-slate-200'}`}>
             <div className="flex justify-between items-center mb-4">
@@ -243,7 +236,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* ERRORS */}
+        {}
         {errors.length > 0 && (
           <div className="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-200">
             <strong className="text-sm font-semibold">Validation Errors:</strong>
@@ -253,7 +246,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* PROGRESS BAR */}
+        {}
         {jobState && (
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-6">
             <div className="flex justify-center items-center mb-4">

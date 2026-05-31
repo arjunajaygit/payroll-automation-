@@ -6,12 +6,11 @@ const prisma = new PrismaClient();
 
 const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-// Fetch all existing employees to show on the dashboard
 export async function GET() {
   try {
     const session = await requireAuth();
     const adminId = session.userId;
-    // We include the 'salaries' relation and sort it in memory chronologically
+    
     const employees = await prisma.employee.findMany({
       where: { adminId },
       include: {
@@ -34,14 +33,12 @@ export async function GET() {
   }
 }
 
-// Bulk Upload or Update Employees
 export async function POST(request: Request) {
   try {
     const session = await requireAuth();
     const adminId = session.userId;
     const { employees } = await request.json();
 
-    // Upsert means it will update the employee if they exist, or create them if they are new
     const upsertPromises = employees.map((emp: any) => 
       prisma.employee.upsert({
         where: { 

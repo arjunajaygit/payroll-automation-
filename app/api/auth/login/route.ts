@@ -27,7 +27,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    // Set the session cookie
     await setSession(admin.id, admin.email, admin.name);
 
     return NextResponse.json({ message: "Logged in successfully" });

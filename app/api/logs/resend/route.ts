@@ -27,7 +27,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // 1. Fetch the log to verify ownership
     const log = await prisma.emailLog.findUnique({
       where: { id: logId, adminId }
     });
@@ -36,7 +35,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Log not found" }, { status: 404 });
     }
 
-    // 2. Fetch Employee and Salary data
     const employee = await prisma.employee.findUnique({
       where: {
         employeeId_adminId: { employeeId: log.employeeId, adminId }
@@ -58,7 +56,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Employee or Salary data not found for this period" }, { status: 404 });
     }
 
-    // 3. Fetch fonts for PDF
     const [fontRes, boldFontRes] = await Promise.all([
       fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf"),
       fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf")
@@ -66,7 +63,6 @@ export async function POST(request: Request) {
     const fontBuffer = Buffer.from(await fontRes.arrayBuffer());
     const boldFontBuffer = Buffer.from(await boldFontRes.arrayBuffer());
 
-    // 4. Combine data for PDF generation
     const employeeData = {
       employeeId: employee.employeeId,
       name: employee.name,
@@ -82,10 +78,8 @@ export async function POST(request: Request) {
       year: salary.year
     };
 
-    // 5. Generate PDF
     const pdfBuffer = await generateSecurePDF(employeeData, fontBuffer, boldFontBuffer);
 
-    // 6. Send Email
     const mailOptions = {
       from: `"PayrollPro System" <${process.env.GMAIL_USER}>`,
       to: employee.email,
@@ -129,7 +123,6 @@ export async function POST(request: Request) {
 
     await transporter.sendMail(mailOptions);
 
-    // 7. Update Log Status
     await prisma.emailLog.update({
       where: { id: logId },
       data: { status: "Sent", errorMessage: null, sentAt: new Date() }
@@ -139,8 +132,7 @@ export async function POST(request: Request) {
 
   } catch (error) {
     console.error("Resend API Error:", error);
-    
-    // Attempt to update the log with the new error if we got far enough
+
     try {
       const { logId } = await request.json();
       if (logId) {
@@ -150,7 +142,7 @@ export async function POST(request: Request) {
         });
       }
     } catch (e) {
-      // Ignore inner error
+      
     }
 
     return NextResponse.json({ error: "Failed to resend email" }, { status: 500 });

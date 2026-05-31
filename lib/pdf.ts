@@ -1,8 +1,6 @@
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 
-// ─── Helpers ───────────────────────────────────────────────────────────────
-
 function inr(value: number): string {
   return `\u20b9${value.toLocaleString("en-IN")}`;
 }
@@ -20,8 +18,6 @@ function slugId(employee: any): string {
   return `SLIP-${employee.employeeId}-${shortMonth}${employee.year}-${hash}`;
 }
 
-// ─── Main Export ───────────────────────────────────────────────────────────
-
 export async function generateSecurePDF(
   employee: any,
   fontBuffer: Buffer,
@@ -31,7 +27,6 @@ export async function generateSecurePDF(
 ): Promise<Buffer> {
   const slipId = slugId(employee);
 
-  // --- Generate Verification URL ---
   const verificationUrl = `${baseUrl}/verify?id=${encodeURIComponent(slipId)}&name=${encodeURIComponent(employee.name)}&empId=${encodeURIComponent(employee.employeeId)}&period=${encodeURIComponent(`${employee.month} ${employee.year}`)}`;
   
   const qrDataUrl: string = await QRCode.toDataURL(verificationUrl, {
@@ -69,11 +64,9 @@ export async function generateSecurePDF(
     doc.registerFont("Regular", fontBuffer);
     doc.registerFont("Bold", boldFontBuffer);
 
-    const W = 595.28; // A4 width
-    const H = 841.89; // A4 height
+    const W = 595.28; 
+    const H = 841.89; 
 
-    // ─── 1. CLEAN HEADER ─────────────────────────────────────────────────────
-    // Draw the Logo SVG Path
     const logoX = 48;
     const logoY = 40;
     doc.save()
@@ -88,24 +81,19 @@ export async function generateSecurePDF(
     doc.fontSize(22).font("Bold").fillColor("#0f172a").text("PayrollPro", logoX + 54, logoY + 12);
     doc.fontSize(9).font("Regular").fillColor("#64748b").text("Automated Payroll System", logoX + 54, logoY + 36);
 
-    // Document Title
     doc.fontSize(24).font("Bold").fillColor("#0f172a").text("PAYSLIP", 0, logoY + 12, { align: "right", width: W - 48 });
     doc.fontSize(10).font("Regular").fillColor("#64748b").text(`${employee.month.toUpperCase()} ${employee.year}`, 0, logoY + 38, { align: "right", width: W - 48 });
 
-    // Divider Line
     doc.moveTo(48, 110).lineTo(W - 48, 110).lineWidth(1).strokeColor("#e2e8f0").stroke();
 
-    // ─── 2. EMPLOYEE SUMMARY ────────────────────────────────────────────────
     const yInfo = 130;
     
     doc.fontSize(9).font("Regular").fillColor("#64748b").text("EMPLOYEE DETAILS", 48, yInfo);
-    
-    // Left column
+
     doc.fontSize(12).font("Bold").fillColor("#0f172a").text(employee.name, 48, yInfo + 18);
     doc.fontSize(10).font("Regular").fillColor("#475569").text(`ID: ${employee.employeeId}`, 48, yInfo + 34);
     doc.fontSize(10).font("Regular").fillColor("#475569").text(employee.designation, 48, yInfo + 48);
 
-    // Right column
     doc.fontSize(9).font("Regular").fillColor("#64748b").text("PAYMENT INFO", 320, yInfo);
     doc.fontSize(10).font("Regular").fillColor("#475569").text(`Period: ${employee.month} ${employee.year}`, 320, yInfo + 18);
     
@@ -113,10 +101,8 @@ export async function generateSecurePDF(
     doc.fontSize(10).font("Regular").fillColor("#475569").text(`Generated: ${genDate}`, 320, yInfo + 34);
     doc.fontSize(10).font("Regular").fillColor("#475569").text(`Status: Paid`, 320, yInfo + 48);
 
-    // ─── 3. EARNINGS & DEDUCTIONS (Simple Layout) ───────────────────────────
     const yTable = 230;
 
-    // Table Headers
     doc.rect(48, yTable, W - 96, 30).fill("#f8fafc");
     doc.fontSize(9).font("Bold").fillColor("#475569");
     doc.text("EARNINGS", 60, yTable + 10);
@@ -125,14 +111,12 @@ export async function generateSecurePDF(
     doc.text("DEDUCTIONS", 320, yTable + 10);
     doc.text("AMOUNT", 460, yTable + 10, { width: 70, align: "right" });
 
-    // Rows
     const yRow1 = yTable + 40;
     const yRow2 = yRow1 + 25;
     const yRow3 = yRow2 + 25;
 
     doc.fontSize(10).font("Regular").fillColor("#0f172a");
 
-    // Earnings Column
     doc.text("Basic Salary", 60, yRow1);
     doc.text(inr(employee.baseSalary), 200, yRow1, { width: 80, align: "right" });
 
@@ -142,11 +126,9 @@ export async function generateSecurePDF(
     doc.text("Special Allowances", 60, yRow3);
     doc.text(inr(employee.allowances), 200, yRow3, { width: 80, align: "right" });
 
-    // Deductions Column
     doc.text("Statutory Deductions", 320, yRow1);
     doc.text(inr(employee.deductions), 460, yRow1, { width: 70, align: "right" });
 
-    // Totals Line
     const yTotalLine = yRow3 + 30;
     doc.moveTo(48, yTotalLine).lineTo(W - 48, yTotalLine).lineWidth(1).strokeColor("#e2e8f0").stroke();
 
@@ -160,32 +142,26 @@ export async function generateSecurePDF(
     doc.text("Total Deductions", 320, yTotals);
     doc.text(inr(employee.deductions), 460, yTotals, { width: 70, align: "right" });
 
-    // ─── 4. NET PAY HIGHLIGHT ───────────────────────────────────────────────
     const yNetBox = yTotals + 50;
     doc.rect(48, yNetBox, W - 96, 60).fill("#eff6ff");
     
     doc.fontSize(12).font("Bold").fillColor("#1e40af").text("NET PAYABLE AMOUNT", 70, yNetBox + 22);
     doc.fontSize(20).font("Bold").fillColor("#1e40af").text(inr(employee.netSalary), 0, yNetBox + 18, { align: "right", width: W - 70 });
 
-    // Amount in words (simplified)
     doc.fontSize(9).font("Regular").fillColor("#3b82f6").text(`Slip ID: ${slipId}`, 70, yNetBox + 38);
 
-    // ─── 5. VERIFICATION & SIGNATURE (Organized Side-by-Side) ────────────────
     const yFooterInfo = yNetBox + 100;
 
-    // QR Verification Block
     doc.rect(48, yFooterInfo, 80, 80).strokeColor("#e2e8f0").lineWidth(1).stroke();
     doc.image(qrBuffer, 49, yFooterInfo + 1, { width: 78, height: 78 });
     
     doc.fontSize(10).font("Bold").fillColor("#0f172a").text("Scan to Verify", 140, yFooterInfo + 10);
     doc.fontSize(9).font("Regular").fillColor("#64748b").text("Scan this QR code with your mobile device to verify the authenticity of this document online.", 140, yFooterInfo + 26, { width: 160 });
 
-    // Signature Block
     const sigX = 350;
     doc.moveTo(sigX, yFooterInfo + 60).lineTo(W - 48, yFooterInfo + 60).lineWidth(1).strokeColor("#94a3b8").stroke();
     doc.fontSize(10).font("Bold").fillColor("#0f172a").text("Authorized Signature", sigX, yFooterInfo + 70, { align: "center", width: W - 48 - sigX });
-    
-    // ─── 6. PREVIEW WATERMARK ───────────────────────────────────────────────
+
     if (!isSecure) {
       doc
         .save()
@@ -200,7 +176,6 @@ export async function generateSecurePDF(
         .fillOpacity(1);
     }
 
-    // ─── 7. SIMPLE FOOTER ───────────────────────────────────────────────────
     doc.moveTo(48, H - 60).lineTo(W - 48, H - 60).lineWidth(1).strokeColor("#e2e8f0").stroke();
     doc.fontSize(8).font("Regular").fillColor("#94a3b8").text(
       "This is a system-generated document. It does not require a physical signature.",

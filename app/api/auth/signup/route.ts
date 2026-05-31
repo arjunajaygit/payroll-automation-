@@ -31,7 +31,6 @@ export async function POST(request: Request) {
       },
     });
 
-    // Create session immediately after signup
     await setSession(admin.id, admin.email, admin.name);
 
     return NextResponse.json({ message: "Account created successfully" }, { status: 201 });

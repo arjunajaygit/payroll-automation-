@@ -39,7 +39,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
     <div className="min-h-screen p-8 bg-slate-50 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-8">
 
-        {/* Page Header */}
+        {}
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome, {data?.adminName || "Admin"}</h1>
@@ -50,7 +50,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           </Link>
         </div>
 
-        {/* Metrics */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
           <MetricCard
             title="Total Employees"
@@ -86,10 +86,10 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           />
         </div>
 
-        {/* Charts */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* Bar Chart */}
+          {}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-6">6-Month Payroll Trend</h3>
             <div className="h-[300px] w-full">
@@ -127,7 +127,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             </div>
           </div>
 
-          {/* Pie Chart */}
+          {}
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
             <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-6">Cost by Designation</h3>
             <div className="h-[300px] w-full">

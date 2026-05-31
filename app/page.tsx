@@ -4,7 +4,6 @@ import { requireAuth } from "../lib/auth";
 
 const prisma = new PrismaClient();
 
-// Opt out of static generation to ensure we get fresh data
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
@@ -83,7 +82,7 @@ export default async function DashboardPage() {
 
   } catch (error) {
     console.error("Failed to load dashboard data:", error);
-    // Provide fallback empty data on error so it doesn't crash
+    
     return <DashboardClient data={{
       totalHeadcount: 0,
       currentMonthPayroll: 0,

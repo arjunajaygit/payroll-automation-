@@ -6,18 +6,17 @@ import SalaryTableClient from "./SalaryTableClient";
 const prisma = new PrismaClient();
 
 export default async function SalaryRecordsPage() {
-  // Ensure we are in a multi-tenant environment
+  
   const session = await requireAuth();
   const adminId = session.userId;
 
-  // Fetch salary records and include the linked employee data, scoped to the current admin
   const salaries = await prisma.salary.findMany({
     where: { adminId },
     include: {
       employee: true,
     },
     orderBy: {
-      createdAt: "desc", // Show the most recently generated payslips first
+      createdAt: "desc", 
     },
   });
 

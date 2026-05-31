@@ -20,7 +20,6 @@ export default function EmailLogs() {
   const [loading, setLoading] = useState(true);
   const [previewLog, setPreviewLog] = useState<{employeeId: string, month: string, year: number} | null>(null);
 
-  // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("All");
   const [selectedYear, setSelectedYear] = useState("All");
@@ -57,7 +56,7 @@ export default function EmailLogs() {
       setLogs(logs.map(log => log.id === logId ? { ...log, status: "Sent" } : log));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to resend email", { id: loadingToast });
-      // Update local state to reflect failure if it failed again
+      
       setLogs(logs.map(log => log.id === logId ? { ...log, status: "Failed" } : log));
     }
   };
@@ -88,7 +87,7 @@ export default function EmailLogs() {
     <div className="min-h-screen p-8 bg-slate-50 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        {/* Page Header */}
+        {}
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Distribution Logs</h1>
@@ -96,7 +95,7 @@ export default function EmailLogs() {
           </div>
         </div>
 
-        {/* Filters */}
+        {}
         {!loading && logs.length > 0 && (
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-end">
             <div className="flex-1 w-full">
@@ -230,7 +229,7 @@ export default function EmailLogs() {
         )}
       </div>
 
-      {/* Payslip Preview Modal */}
+      {}
       {previewLog && (
         <PayslipPreview 
           employeeId={previewLog.employeeId} 

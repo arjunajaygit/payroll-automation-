@@ -38,7 +38,6 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Salary record not found" }, { status: 404 });
     }
 
-    // Shape the employee object for the pdf generator as it expects a merged object
     const mergedEmployee = {
       ...salary.employee,
       baseSalary: salary.baseSalary,

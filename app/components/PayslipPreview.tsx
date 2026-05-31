@@ -19,10 +19,10 @@ export default function PayslipPreview({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[92vh] flex flex-col overflow-hidden">
 
-        {/* Modal Header */}
+        {}
         <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50">
           <div className="flex flex-row items-center space-x-3">
-            {/* PayrollPro Logo mark */}
+            {}
             <div className="flex-none w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm">
               P
             </div>
@@ -56,7 +56,7 @@ export default function PayslipPreview({
           </div>
         </div>
 
-        {/* PDF Iframe */}
+        {}
         <div className="flex-1 bg-slate-100 p-5">
           <iframe
             src={pdfUrl}

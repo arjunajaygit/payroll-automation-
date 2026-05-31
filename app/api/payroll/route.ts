@@ -10,7 +10,7 @@ const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true,
-  family: 4, // Force IPv4
+  family: 4, 
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
@@ -27,7 +27,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No payroll data provided" }, { status: 400 });
     }
 
-    // Optimization: fetch fonts once per request
     const [fontRes, boldFontRes] = await Promise.all([
       fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf"),
       fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf")
@@ -37,7 +36,6 @@ export async function POST(request: Request) {
 
     let processedCount = 0;
 
-    // Process all employees concurrently
     await Promise.all(payrollData.map(async (employee: any) => {
       try {
         await prisma.salary.upsert({

@@ -33,7 +33,7 @@ export default function SalaryTableClient({ initialSalaries }: { initialSalaries
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
+      {}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row gap-4 items-end">
         <div className="flex-1 w-full">
           <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Search</label>
