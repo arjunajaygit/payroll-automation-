@@ -35,7 +35,7 @@ PayrollPro is a full-stack Next.js application designed to streamline the monthl
 ### Secure Payslip Preview
 ![Secure Payslip Preview](public/screenshots/8.png)
 
-### Mobile Experience
+### Payslip Verification & Email Delivery
 
 <p align="center">
   <img src="public/screenshots/9.jpeg" width="45%" alt="Verified Payroll Authenticity" />
