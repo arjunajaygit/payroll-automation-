@@ -81,6 +81,10 @@ npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) to view the application in your browser.
 
+> 💡 **Important Setup Notes:**
+> 1. **Prisma Generation:** Running `npx prisma db push` usually generates the Prisma Client automatically. If Next.js throws a missing Prisma Client error, simply run `npx prisma generate`.
+> 2. **First Login:** Because you are starting with a fresh database, the default demo credentials won't exist yet. Click **"Create one now"** on the login page (or navigate to `/signup`) to register your first admin account.
+
 ---
 
 ## 📸 Screenshots
