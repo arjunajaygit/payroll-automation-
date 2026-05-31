@@ -115,18 +115,18 @@ export default function EmailLogs() {
   });
 
   return (
-    <div className="min-h-screen p-8 bg-slate-50 text-slate-900">
+    <div className="min-h-screen p-4 lg:p-8 bg-slate-50 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Distribution Logs</h1>
+            <h1 className="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">Distribution Logs</h1>
             <p className="text-slate-400 mt-1 text-sm">Monitor payslip distribution status and access generated documentation.</p>
           </div>
           {logs.some(log => log.status === "Failed") && (
             <button
               onClick={handleRetryAllFailed}
-              className="px-4 py-2 bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-900 transition flex items-center gap-2"
+              className="px-4 py-2 bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-900 transition flex items-center gap-2 w-full sm:w-auto justify-center"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
               Retry All Failed

@@ -193,12 +193,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
         
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Process Payroll</h1>
+            <h1 className="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">Process Payroll</h1>
             <p className="text-slate-400 mt-1 text-sm">Upload monthly compensation data to generate and distribute payslips.</p>
           </div>
           {payroll.length > 0 && (
@@ -213,7 +213,7 @@ export default function Dashboard() {
 
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
           {employeeDB.length > 0 ? (
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <div className="flex items-center gap-2">
                 <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-sm shadow-emerald-500/30">
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
@@ -223,7 +223,7 @@ export default function Dashboard() {
               <Link href="/employees" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Manage Records</Link>
             </div>
           ) : (
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <p className="text-red-500 font-medium text-sm">Employee database is currently empty.</p>
               <Link href="/employees" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Upload Records</Link>
             </div>
@@ -319,14 +319,14 @@ export default function Dashboard() {
 
         {!jobState && payroll.length > 0 && (
            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-200">
-             <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
+             <div className="px-4 lg:px-6 py-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                <div>
                  <h2 className="text-sm font-semibold text-slate-700">Payroll Processing Preview</h2>
                  <p className="text-xs text-slate-400 mt-0.5">Verify compensation details before authorizing the generation of {payroll.length} payslips.</p>
                </div>
-               <button 
+                <button 
                  onClick={handleGenerateAndSend} 
-                 className={`text-white text-sm px-5 py-2.5 rounded-xl shadow-sm transition font-medium ${(isProcessing || errors.length > 0) ? 'opacity-60 cursor-not-allowed bg-slate-300' : 'bg-blue-600 hover:bg-blue-700'}`}
+                 className={`text-white text-sm px-5 py-2.5 rounded-xl shadow-sm transition font-medium w-full sm:w-auto ${(isProcessing || errors.length > 0) ? 'opacity-60 cursor-not-allowed bg-slate-300' : 'bg-blue-600 hover:bg-blue-700'}`}
                  disabled={isProcessing || errors.length > 0}
                >
                  {isProcessing ? "Processing..." : "Authorize & Distribute Payslips"}

@@ -38,7 +38,7 @@ export default async function RootLayout({
       <body className="bg-slate-50 text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
         <AccessibilityProvider>
           {session && <Sidebar />}
-          <main className={`${session ? "ml-64" : ""}`}>
+          <main className={`${session ? "pt-14 lg:pt-0 lg:ml-64" : ""}`}>
             {children}
           </main>
           <Toaster position="top-right" />

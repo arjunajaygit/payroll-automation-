@@ -151,21 +151,21 @@ export default function EmployeeDirectory() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Employee Database</h1>
+            <h1 className="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">Employee Database</h1>
             <p className="text-slate-400 mt-1 text-sm">Manage workforce records and access historical compensation data.</p>
           </div>
-          <Link href="/payroll" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl shadow-sm hover:bg-blue-700 transition">
+          <Link href="/payroll" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl shadow-sm hover:bg-blue-700 transition w-full sm:w-auto text-center">
             Run Payroll →
           </Link>
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-          <div className="flex justify-between items-center mb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <div>
               <h2 className="text-sm font-semibold text-slate-700">Synchronize Employee Database</h2>
               <p className="text-xs text-slate-400 mt-1">Upload a master CSV or Excel (.xlsx) file to onboard personnel or update existing records. Maximum size: 5MB.</p>

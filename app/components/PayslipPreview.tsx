@@ -17,13 +17,13 @@ export default function PayslipPreview({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] lg:h-[92vh] flex flex-col overflow-hidden mx-2 lg:mx-0">
 
         {/* Modal Header */}
-        <div className="flex justify-between items-end px-6 py-4 border-b border-slate-200 bg-white">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end px-4 lg:px-6 py-3 lg:py-4 border-b border-slate-200 bg-white gap-2">
           <div>
-            <h3 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">Payslip Preview</h3>
-            <p className="text-slate-400 text-sm">{month} {year} · Verified Payroll Document</p>
+            <h3 className="text-lg lg:text-2xl font-bold text-slate-900 tracking-tight mb-0.5 lg:mb-1">Payslip Preview</h3>
+            <p className="text-slate-400 text-xs lg:text-sm">{month} {year} · Verified Payroll Document</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -50,7 +50,7 @@ export default function PayslipPreview({
           </div>
         </div>
 
-        <div className="flex-1 bg-slate-100 p-5">
+        <div className="flex-1 bg-slate-100 p-3 lg:p-5">
           <iframe
             src={pdfUrl}
             className="w-full h-full rounded-xl shadow-sm border border-slate-200 bg-white"

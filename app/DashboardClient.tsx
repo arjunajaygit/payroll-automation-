@@ -23,7 +23,7 @@ function MetricCard({ title, value, subtitle, icon: Icon, iconBg = "bg-blue-50",
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{title}</h3>
-          <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
+          <p className="text-2xl lg:text-3xl font-bold text-slate-900 mt-2">{value}</p>
         </div>
         <div className={`p-3 ${iconBg} ${iconColor} rounded-xl`}>
           <Icon className="w-5 h-5" />
@@ -36,15 +36,15 @@ function MetricCard({ title, value, subtitle, icon: Icon, iconBg = "bg-blue-50",
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
   return (
-    <div className="min-h-screen p-8 bg-slate-50 text-slate-900">
+    <div className="min-h-screen p-4 lg:p-8 bg-slate-50 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-8">
 
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Welcome, {data?.adminName || "Admin"}</h1>
+            <h1 className="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">Welcome, {data?.adminName || "Admin"}</h1>
             <p className="text-slate-400 mt-1 text-sm">Overview of your organization's payroll metrics and workforce data.</p>
           </div>
-          <Link href="/payroll" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl shadow-sm hover:bg-blue-700 transition">
+          <Link href="/payroll" className="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl shadow-sm hover:bg-blue-700 transition w-full sm:w-auto text-center">
             Run Payroll
           </Link>
         </div>

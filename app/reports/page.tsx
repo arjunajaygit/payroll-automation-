@@ -123,18 +123,18 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
+    <div className="min-h-screen bg-slate-50 p-4 lg:p-8 text-slate-900">
       <div className="max-w-4xl mx-auto space-y-8">
         
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Export Reports</h1>
+          <h1 className="text-xl lg:text-2xl font-bold text-slate-900 tracking-tight">Export Reports</h1>
           <p className="text-slate-500 text-sm">Download your payroll data, email distribution logs, and generated payslips.</p>
         </div>
 
         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
           <h2 className="text-sm font-semibold text-slate-800 uppercase tracking-wider mb-4">Select Period</h2>
-          <div className="flex gap-4">
-            <div className="w-48">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="w-full sm:w-48">
               <label className="block text-xs font-semibold text-slate-400 mb-2">Month</label>
               <select 
                 value={selectedMonth}
@@ -145,7 +145,7 @@ export default function ReportsPage() {
                 {MONTHS.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
-            <div className="w-48">
+            <div className="w-full sm:w-48">
               <label className="block text-xs font-semibold text-slate-400 mb-2">Year</label>
               <select 
                 value={selectedYear}
