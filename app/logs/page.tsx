@@ -53,11 +53,42 @@ export default function EmailLogs() {
       }
 
       toast.success("Resent successfully!", { id: loadingToast });
-      setLogs(logs.map(log => log.id === logId ? { ...log, status: "Sent" } : log));
+      setLogs(prev => prev.map(log => log.id === logId ? { ...log, status: "Sent" } : log));
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to resend email", { id: loadingToast });
       
-      setLogs(logs.map(log => log.id === logId ? { ...log, status: "Failed" } : log));
+      setLogs(prev => prev.map(log => log.id === logId ? { ...log, status: "Failed" } : log));
+    }
+  };
+
+  const handleRetryAllFailed = async () => {
+    const failedLogs = logs.filter(log => log.status === "Failed");
+    if (failedLogs.length === 0) return;
+
+    const loadingToast = toast.loading(`Retrying ${failedLogs.length} failed emails...`);
+    let successCount = 0;
+
+    for (const log of failedLogs) {
+      try {
+        const response = await fetch("/api/logs/resend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ logId: log.id, month: log.month, year: log.year }),
+        });
+
+        if (response.ok) {
+          successCount++;
+          setLogs(prev => prev.map(l => l.id === log.id ? { ...l, status: "Sent" } : l));
+        }
+      } catch (error) {
+        console.error("Failed to resend to", log.email);
+      }
+    }
+
+    if (successCount === failedLogs.length) {
+      toast.success(`Successfully resent all ${successCount} emails!`, { id: loadingToast });
+    } else {
+      toast.error(`Resent ${successCount}/${failedLogs.length} emails. Some still failed.`, { id: loadingToast });
     }
   };
 
@@ -92,6 +123,15 @@ export default function EmailLogs() {
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Distribution Logs</h1>
             <p className="text-slate-400 mt-1 text-sm">Monitor payslip distribution status and access generated documentation.</p>
           </div>
+          {logs.some(log => log.status === "Failed") && (
+            <button
+              onClick={handleRetryAllFailed}
+              className="px-4 py-2 bg-slate-800 text-white text-sm font-semibold rounded-xl shadow-sm hover:bg-slate-900 transition flex items-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+              Retry All Failed
+            </button>
+          )}
         </div>
 
         {!loading && logs.length > 0 && (
