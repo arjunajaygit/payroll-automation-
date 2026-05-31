@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 import { requireAuth } from "../../../../lib/auth";
 import { generateSecurePDF } from "../../../../lib/pdf";
-import { getFontBuffer } from "../../../../lib/fonts";
-import archiver from "archiver";
+import { getFontBuffers } from "../../../../lib/fonts";
+const archiver = require("archiver");
 import { PassThrough } from "stream";
 
 // Set maximum duration for this API route if hosted on Vercel
@@ -36,8 +36,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "No salary records found for this period" }, { status: 404 });
     }
 
-    const regularFont = await getFontBuffer("Inter-Regular.ttf");
-    const boldFont = await getFontBuffer("Inter-Bold.ttf");
+    const fonts = await getFontBuffers();
+    const regularFont = fonts.regular;
+    const boldFont = fonts.bold;
 
     const archive = archiver('zip', {
       zlib: { level: 5 } // Standard compression
