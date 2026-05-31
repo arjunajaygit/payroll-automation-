@@ -43,6 +43,30 @@ PayrollPro is a full-stack Next.js application designed to streamline the monthl
   <img src="public/screenshots/10.jpeg" width="45%" alt="Automated Email Delivery" />
 </p>
 
+### Mobile Responsive UI
+
+<p align="center">
+  <img src="public/screenshots/mobile/1.jpeg" width="32%" />
+  &nbsp;
+  <img src="public/screenshots/mobile/2.jpeg" width="32%" />
+  &nbsp;
+  <img src="public/screenshots/mobile/3.jpeg" width="32%" />
+</p>
+
+<p align="center">
+  <img src="public/screenshots/mobile/4.jpeg" width="32%" />
+  &nbsp;
+  <img src="public/screenshots/mobile/5.jpeg" width="32%" />
+  &nbsp;
+  <img src="public/screenshots/mobile/6.jpeg" width="32%" />
+</p>
+
+<p align="center">
+  <img src="public/screenshots/mobile/7.jpeg" width="32%" />
+  &nbsp;
+  <img src="public/screenshots/mobile/8.jpeg" width="32%" />
+</p>
+
 ## 🏗️ Architecture & Engineering Decisions
 
 ### The Message Queue (Redis + BullMQ)
