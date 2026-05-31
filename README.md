@@ -1,14 +1,13 @@
 # PayrollPro: Automated Payroll & Document Distribution System
 
-🚀 **[View Live Deployment](https://payroll-automation-topaz.vercel.app/)** *(Update with your exact Vercel/Render link)*
-
+**[View Live Deployment](https://payrolpro-iota.vercel.app/)** 
 PayrollPro is a modern, full-stack Next.js web application designed to streamline the monthly payroll process. It empowers administrators to upload employee compensation data in bulk, automatically generates encrypted PDF payslips, and securely distributes them via email.
 
 > ⚠️ **Important Note on Email Delivery:** Because the system sends automated emails with PDF attachments, some strict email providers may flag them. **Please advise employees to check their spam/junk folders** if they do not see their payslip in their primary inbox.
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 - **Bulk CSV Processing:** Drag-and-drop CSV upload with instant client-side validation for seamless employee onboarding.
 - **Secure PDF Generation:** Automatically creates pixel-perfect PDF payslips using `pdfkit`. Every PDF is heavily encrypted and uniquely password-protected using employee-specific data.
