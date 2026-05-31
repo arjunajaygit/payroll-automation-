@@ -37,15 +37,26 @@ export default function EmployeeDirectory() {
     fetchEmployees();
   }, []);
 
-  const downloadEmployeeSample = () => {
-    const data = [
-      { employeeId: "EMP001", name: "Arjun", email: "arjun@example.com", designation: "Software Engineer", birthYear: 2003 },
-      { employeeId: "EMP002", name: "Rahul", email: "rahul@example.com", designation: "UI Designer", birthYear: 2002 }
-    ];
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Employees");
-    XLSX.writeFile(wb, "employees_master.xlsx");
+  const downloadEmployeeSample = (format: 'csv' | 'xlsx') => {
+    if (format === 'csv') {
+      const csvContent = "data:text/csv;charset=utf-8,employeeId,name,email,designation,birthYear\nEMP001,Arjun,arjun@example.com,Software Engineer,2003\nEMP002,Rahul,rahul@example.com,UI Designer,2002";
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "employees_master.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } else {
+      const data = [
+        { employeeId: "EMP001", name: "Arjun", email: "arjun@example.com", designation: "Software Engineer", birthYear: 2003 },
+        { employeeId: "EMP002", name: "Rahul", email: "rahul@example.com", designation: "UI Designer", birthYear: 2002 }
+      ];
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Employees");
+      XLSX.writeFile(wb, "employees_master.xlsx");
+    }
   };
 
   const onDropMaster = async (acceptedFiles: File[], fileRejections: any[]) => {
@@ -159,7 +170,16 @@ export default function EmployeeDirectory() {
               <h2 className="text-sm font-semibold text-slate-700">Synchronize Employee Database</h2>
               <p className="text-xs text-slate-400 mt-1">Upload a master CSV or Excel (.xlsx) file to onboard personnel or update existing records. Maximum size: 5MB.</p>
             </div>
-            <button onClick={downloadEmployeeSample} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Download Template</button>
+            <div className="flex gap-3">
+              <button onClick={() => downloadEmployeeSample('csv')} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Template (.csv)
+              </button>
+              <button onClick={() => downloadEmployeeSample('xlsx')} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Template (.xlsx)
+              </button>
+            </div>
           </div>
           <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${isDragActive ? 'border-blue-400 bg-blue-50/50' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}>
             <input {...getInputProps()} />

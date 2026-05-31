@@ -62,15 +62,26 @@ export default function Dashboard() {
     link.remove();
   };
 
-  const downloadSalarySample = () => {
-    const data = [
-      { employeeId: "EMP001", baseSalary: 50000, hra: 10000, allowances: 5000, deductions: 2000, month: "May", year: 2026 },
-      { employeeId: "EMP002", baseSalary: 45000, hra: 8000, allowances: 3000, deductions: 1000, month: "May", year: 2026 }
-    ];
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Salary");
-    XLSX.writeFile(wb, "salary_template.xlsx");
+  const downloadSalarySample = (format: 'csv' | 'xlsx') => {
+    if (format === 'csv') {
+      const csvContent = "data:text/csv;charset=utf-8,employeeId,baseSalary,hra,allowances,deductions,month,year\nEMP001,50000,10000,5000,2000,May,2026\nEMP002,45000,8000,3000,1000,May,2026";
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "salary_may_2026.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } else {
+      const data = [
+        { employeeId: "EMP001", baseSalary: 50000, hra: 10000, allowances: 5000, deductions: 2000, month: "May", year: 2026 },
+        { employeeId: "EMP002", baseSalary: 45000, hra: 8000, allowances: 3000, deductions: 1000, month: "May", year: 2026 }
+      ];
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Salary");
+      XLSX.writeFile(wb, "salary_template.xlsx");
+    }
   };
 
   const onDropSalary = (acceptedFiles: File[], fileRejections: any[]) => {
@@ -246,7 +257,16 @@ export default function Dashboard() {
                 </h2>
               </div>
               {payroll.length === 0 && (
-                <button onClick={downloadSalarySample} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Download Template</button>
+                <div className="flex gap-3">
+                  <button onClick={() => downloadSalarySample('csv')} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Template (.csv)
+                  </button>
+                  <button onClick={() => downloadSalarySample('xlsx')} className="text-xs text-emerald-600 hover:text-emerald-700 font-medium transition flex items-center gap-1">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Template (.xlsx)
+                  </button>
+                </div>
               )}
             </div>
             
