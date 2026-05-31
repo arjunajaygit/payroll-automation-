@@ -84,7 +84,7 @@ export async function POST(request: Request) {
 
     await prisma.emailLog.update({
       where: { id: logId },
-      data: { status: "Sent", errorMessage: null, sentAt: new Date() }
+      data: { status: "Sent", errorMessage: null, sentAt: new Date(), month: salary.month, year: salary.year }
     });
 
     return NextResponse.json({ success: true, message: "Email resent successfully" });

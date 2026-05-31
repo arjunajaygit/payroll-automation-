@@ -25,14 +25,17 @@ export async function GET() {
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     const formattedLogs = logs.map(log => {
-      const latestSalary = log.employee.salaries[0];
+      // Fallback for old logs created before month/year was added to the schema
+      const fallbackMonth = monthNames[log.sentAt.getMonth()];
+      const fallbackYear = log.sentAt.getFullYear();
+      
       return {
         id: log.id,
         employeeId: log.employeeId,
         employeeName: log.employee.name,
         email: log.employee.email,
-        month: latestSalary ? latestSalary.month : monthNames[log.sentAt.getMonth()],
-        year: latestSalary ? latestSalary.year : log.sentAt.getFullYear(),
+        month: log.month || fallbackMonth,
+        year: log.year || fallbackYear,
         sentAt: log.sentAt,
         status: log.status,
       };

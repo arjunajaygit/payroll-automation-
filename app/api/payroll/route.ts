@@ -67,7 +67,13 @@ export async function POST(request: Request) {
 
         await transporter.sendMail(mailOptions);
         await prisma.emailLog.create({
-          data: { employeeId: employee.employeeId, adminId, status: "Sent" },
+          data: { 
+            employeeId: employee.employeeId, 
+            adminId, 
+            status: "Sent",
+            month: employee.month,
+            year: employee.year
+          },
         });
 
         processedCount++;
@@ -80,6 +86,8 @@ export async function POST(request: Request) {
             adminId,
             status: "Failed",
             errorMessage: err instanceof Error ? err.message : String(err),
+            month: employee.month,
+            year: employee.year
           },
         });
       }
