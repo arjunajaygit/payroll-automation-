@@ -38,3 +38,39 @@ body {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
 }
+
+/* Accessibility Modes */
+
+html.theme-large-text {
+  font-size: 110%; /* Scales base rem unit */
+}
+
+body.theme-high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  /* Darken all text slightly using CSS filters or overriding variables */
+  /* This is a simple implementation. Real high contrast often overrides colors globally. */
+}
+
+body.theme-high-contrast * {
+  border-color: #000000 !important;
+  color: #000000 !important;
+}
+
+/* Fix specific backgrounds for High Contrast so it doesn't look completely broken */
+body.theme-high-contrast .bg-slate-50,
+body.theme-high-contrast .bg-white {
+  background-color: #ffffff !important;
+}
+
+body.theme-high-contrast .bg-blue-600 {
+  background-color: #0000ff !important;
+  color: #ffffff !important;
+}
+
+body.theme-reduce-motion * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
