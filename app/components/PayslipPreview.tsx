@@ -19,17 +19,11 @@ export default function PayslipPreview({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[92vh] flex flex-col overflow-hidden">
 
-        {}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <div className="flex flex-row items-center space-x-3">
-            {}
-            <div className="flex-none w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm">
-              P
-            </div>
-            <div className="flex flex-col justify-center">
-              <h3 className="font-bold text-slate-900 text-lg tracking-tight leading-none mb-1">Payslip Preview</h3>
-              <p className="text-sm text-slate-500 leading-none">{month} {year} · Verified Payroll Document</p>
-            </div>
+        {/* Modal Header */}
+        <div className="flex justify-between items-end px-6 py-4 border-b border-slate-200 bg-white">
+          <div>
+            <h3 className="text-2xl font-bold text-slate-900 tracking-tight mb-1">Payslip Preview</h3>
+            <p className="text-slate-400 text-sm">{month} {year} · Verified Payroll Document</p>
           </div>
 
           <div className="flex items-center gap-3">
