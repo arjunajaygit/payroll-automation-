@@ -33,13 +33,17 @@ export async function GET(request: Request) {
 
     const mappedLogs = logs.map(log => {
       const latestSalary = log.employee.salaries[0];
+      
+      const fallbackMonth = latestSalary ? latestSalary.month : monthNames[log.sentAt.getMonth()];
+      const fallbackYear = latestSalary ? latestSalary.year : log.sentAt.getFullYear();
+      
       return {
         id: log.id,
         employeeId: log.employeeId,
         employeeName: log.employee.name,
         email: log.employee.email,
-        month: latestSalary ? latestSalary.month : monthNames[log.sentAt.getMonth()],
-        year: latestSalary ? latestSalary.year : log.sentAt.getFullYear(),
+        month: log.month || fallbackMonth,
+        year: log.year || fallbackYear,
         status: log.status,
         sentAt: log.sentAt
       };
