@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       "Month": l.month,
       "Year": l.year,
       "Status": l.status,
-      "Sent At": new Date(l.sentAt).toLocaleString()
+      "Sent At": l.sentAt
     }));
 
     return NextResponse.json(flatData);

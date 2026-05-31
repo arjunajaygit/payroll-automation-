@@ -60,7 +60,12 @@ export default function ReportsPage() {
         return;
       }
 
-      const ws = XLSX.utils.json_to_sheet(data);
+      const formattedData = data.map((row: any) => ({
+        ...row,
+        "Sent At": new Date(row["Sent At"]).toLocaleString()
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(formattedData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Email Logs");
       XLSX.writeFile(wb, `Email_Logs_${selectedMonth}_${selectedYear}.xlsx`);
