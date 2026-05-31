@@ -25,7 +25,6 @@ export default function PreviewAction({ employeeId, month, year }: { employeeId:
           month={month}
           year={year}
           onClose={() => setShowPreview(false)}
-          hideDownload={true}
         />
       )}
     </>
