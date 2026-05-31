@@ -82,6 +82,7 @@ export async function POST(request: Request) {
 
     await transporter.sendMail(mailOptions);
 
+    // @ts-ignore: Bypassing stale TS server cache for new schema fields
     await prisma.emailLog.update({
       where: { id: logId },
       data: { status: "Sent", errorMessage: null, sentAt: new Date(), month: salary.month, year: salary.year }

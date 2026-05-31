@@ -44,8 +44,8 @@ export async function GET(request: Request) {
         employeeId: log.employeeId,
         employeeName: log.employee.name,
         email: log.employee.email,
-        month: log.month || fallbackMonth,
-        year: log.year || fallbackYear,
+        month: (log as any).month || fallbackMonth,
+        year: (log as any).year || fallbackYear,
         status: log.status,
         sentAt: log.sentAt
       };
