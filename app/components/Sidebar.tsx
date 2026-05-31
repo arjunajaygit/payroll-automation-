@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { LayoutDashboard, Users, CreditCard, Receipt, FileText, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, CreditCard, Receipt, FileText, LogOut, Download } from "lucide-react";
 import AccessibilityModal from "./AccessibilityModal";
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
   { name: "Employees", href: "/employees", icon: Users },
   { name: "Salary Records", href: "/salary", icon: Receipt },
   { name: "Email Logs", href: "/logs", icon: FileText },
+  { name: "Reports", href: "/reports", icon: Download },
 ];
 
 export default function Sidebar() {
