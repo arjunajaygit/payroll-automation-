@@ -48,7 +48,12 @@ export default function ReportsPage() {
     setIsExporting(true);
     const loadingToast = toast.loading("Fetching email logs...");
     try {
-      const res = await fetch(`/api/reports/logs?month=${selectedMonth}&year=${selectedYear}`);
+      const res = await fetch(`/api/reports/logs?month=${selectedMonth}&year=${selectedYear}`, {
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache'
+        }
+      });
       if (!res.ok) {
         throw new Error(await res.text());
       }
@@ -60,10 +65,17 @@ export default function ReportsPage() {
         return;
       }
 
-      const formattedData = data.map((row: any) => ({
-        ...row,
-        "Sent At": new Date(row["Sent At"]).toLocaleString()
-      }));
+      const formattedData = data.map((row: any) => {
+        let sentDateStr = row["Sent At"];
+        try {
+          sentDateStr = new Date(row["Sent At"]).toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+        } catch(e) {}
+        
+        return {
+          ...row,
+          "Sent At": sentDateStr
+        };
+      });
 
       const ws = XLSX.utils.json_to_sheet(formattedData);
       const wb = XLSX.utils.book_new();
