@@ -14,15 +14,34 @@ export const validateEmployeeCSV = (rows: any[]): ValidationResult<any> => {
   const seenIds = new Set<string>();
   const seenEmails = new Set<string>();
 
+  const expectedHeaders = ['employeeId', 'name', 'email', 'designation', 'birthYear'];
+
   if (!rows || rows.length === 0) {
     return { isValid: false, errors: ["CSV file is empty."], data: [] };
+  }
+
+  // Check if the file has the correct columns
+  const firstRowKeys = Object.keys(rows[0]);
+  const missingHeaders = expectedHeaders.filter(header => !firstRowKeys.includes(header));
+  
+  if (missingHeaders.length > 0) {
+    return { 
+      isValid: false, 
+      errors: [`Invalid CSV format. Missing required columns: ${missingHeaders.join(', ')}. Please download and use the correct template.`], 
+      data: [] 
+    };
   }
 
   rows.forEach((row, index) => {
     const rowNum = index + 2; 
 
-    if (!row.employeeId || !row.name || !row.email || !row.designation || !row.birthYear) {
-      errors.push(`Row ${rowNum}: Missing one or more required fields (employeeId, name, email, designation, birthYear).`);
+    const missingFields = expectedHeaders.filter(field => {
+      const val = row[field];
+      return val === undefined || val === null || String(val).trim() === '';
+    });
+
+    if (missingFields.length > 0) {
+      errors.push(`Row ${rowNum}: Missing value for ${missingFields.join(', ')}.`);
       return; 
     }
 
@@ -67,30 +86,48 @@ export const validateSalaryCSV = (rows: any[], masterDB: any[]): ValidationResul
   const validMonths = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December",
                       "Jan", "Feb", "Mar", "Apr", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+  const expectedHeaders = ['employeeId', 'baseSalary', 'hra', 'allowances', 'deductions', 'month', 'year'];
+
   if (!rows || rows.length === 0) {
     return { isValid: false, errors: ["CSV file is empty."], data: [] };
+  }
+
+  // Check if the file has the correct columns
+  const firstRowKeys = Object.keys(rows[0]);
+  const missingHeaders = expectedHeaders.filter(header => !firstRowKeys.includes(header));
+  
+  if (missingHeaders.length > 0) {
+    return { 
+      isValid: false, 
+      errors: [`Invalid CSV format. Missing required columns: ${missingHeaders.join(', ')}. Please download and use the correct template.`], 
+      data: [] 
+    };
   }
 
   rows.forEach((row, index) => {
     const rowNum = index + 2;
 
-    if (
-      row.employeeId === undefined || 
-      row.baseSalary === undefined || 
-      row.hra === undefined || 
-      row.allowances === undefined || 
-      row.deductions === undefined || 
-      !row.month || 
-      !row.year
-    ) {
-      errors.push(`Row ${rowNum}: Missing required fields (employeeId, baseSalary, hra, allowances, deductions, month, year).`);
+    const missingFields = expectedHeaders.filter(field => {
+      const val = row[field];
+      return val === undefined || val === null || String(val).trim() === '';
+    });
+
+    if (missingFields.length > 0) {
+      errors.push(`Row ${rowNum}: Missing value for ${missingFields.join(', ')}.`);
       return;
     }
 
     const { employeeId, baseSalary, hra, allowances, deductions, month, year } = row;
 
-    if (Number(baseSalary) < 0 || Number(hra) < 0 || Number(allowances) < 0 || Number(deductions) < 0) {
-      errors.push(`Row ${rowNum}: Salary components (baseSalary, hra, allowances, deductions) cannot be negative.`);
+    const bs = Number(baseSalary);
+    const h = Number(hra);
+    const a = Number(allowances);
+    const d = Number(deductions);
+
+    if (isNaN(bs) || isNaN(h) || isNaN(a) || isNaN(d)) {
+      errors.push(`Row ${rowNum}: Salary components must be valid numbers.`);
+    } else if (bs < 0 || h < 0 || a < 0 || d < 0) {
+      errors.push(`Row ${rowNum}: Salary components cannot be negative.`);
     }
 
     const dbRecord = masterDB.find((emp) => emp.employeeId === employeeId);
