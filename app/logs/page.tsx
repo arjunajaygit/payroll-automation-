@@ -39,9 +39,27 @@ export default function EmailLogs() {
       });
   }, []);
 
-  const handleResend = (logId: string) => {
-    toast.success("Resent successfully!");
-    setLogs(logs.map(log => log.id === logId ? { ...log, status: "Sent" } : log));
+  const handleResend = async (logId: string, month: string, year: number) => {
+    const loadingToast = toast.loading("Resending email...");
+    try {
+      const response = await fetch("/api/logs/resend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ logId, month, year }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to resend");
+      }
+
+      toast.success("Resent successfully!", { id: loadingToast });
+      setLogs(logs.map(log => log.id === logId ? { ...log, status: "Sent" } : log));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to resend email", { id: loadingToast });
+      // Update local state to reflect failure if it failed again
+      setLogs(logs.map(log => log.id === logId ? { ...log, status: "Failed" } : log));
+    }
   };
 
   if (loading) {
@@ -188,7 +206,7 @@ export default function EmailLogs() {
                         </a>
                         {log.status === "Failed" && (
                           <button 
-                            onClick={() => handleResend(log.id)}
+                            onClick={() => handleResend(log.id, log.month, log.year)}
                             className="inline-flex items-center justify-center p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
                             title="Resend"
                           >
