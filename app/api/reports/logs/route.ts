@@ -15,17 +15,39 @@ export async function GET(request: Request) {
     }
 
     const logs = await prisma.emailLog.findMany({
-      where: {
-        adminId,
-        month,
-        year: parseInt(year)
-      },
-      orderBy: {
-        sentAt: "desc"
+      where: { adminId },
+      orderBy: { sentAt: "desc" },
+      include: {
+        employee: {
+          include: {
+            salaries: {
+              orderBy: { createdAt: 'desc' },
+              take: 1
+            }
+          }
+        }
       }
     });
 
-    const flatData = logs.map(l => ({
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+    const mappedLogs = logs.map(log => {
+      const latestSalary = log.employee.salaries[0];
+      return {
+        id: log.id,
+        employeeId: log.employeeId,
+        employeeName: log.employee.name,
+        email: log.employee.email,
+        month: latestSalary ? latestSalary.month : monthNames[log.sentAt.getMonth()],
+        year: latestSalary ? latestSalary.year : log.sentAt.getFullYear(),
+        status: log.status,
+        sentAt: log.sentAt
+      };
+    });
+
+    const filteredLogs = mappedLogs.filter(log => log.month === month && log.year === parseInt(year));
+
+    const flatData = filteredLogs.map(l => ({
       "Employee ID": l.employeeId,
       "Name": l.employeeName,
       "Email": l.email,
