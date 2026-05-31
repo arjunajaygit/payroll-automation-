@@ -62,14 +62,14 @@ export async function GET(request: Request) {
       zip.file(fileName, pdfBuffer);
     }
 
-    // Generate the zip file buffer
-    const zipBuffer = await zip.generateAsync({ 
-      type: "nodebuffer",
+    // Generate the zip file buffer as Uint8Array (compatible with Web APIs / BodyInit)
+    const zipData = await zip.generateAsync({ 
+      type: "uint8array",
       compression: "DEFLATE",
       compressionOptions: { level: 5 }
     });
 
-    return new NextResponse(zipBuffer, {
+    return new NextResponse(zipData, {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="payslips_${month}_${year}.zip"`,
