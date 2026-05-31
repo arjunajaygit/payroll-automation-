@@ -1,13 +1,87 @@
 # PayrollPro: Automated Payroll & Document Distribution System
 
-PayrollPro is a full-stack Next.js application designed to streamline the monthly payroll process. It allows administrators to upload bulk employee data via CSV, automatically generates encrypted, password-protected PDF payslips, and securely dispatches them to employees via email.
+🚀 **[View Live Deployment](https://payroll-automation-topaz.vercel.app/)** *(Update with your exact Vercel/Render link)*
 
-## 🚀 Features
-- **Bulk CSV Processing**: Drag-and-drop CSV uploads with instant client-side validation.
-- **Secure PDF Generation**: Generates pixel-perfect PDF payslips using `pdfkit`. Each PDF is 128-bit encrypted and password-protected using the employee's personal details.
-- **Automated Email Dispatch**: Seamlessly distributes the generated PDFs to employees using `nodemailer`.
-- **Custom Authentication**: Fully implemented JWT-based authentication system with secure HttpOnly cookies, password hashing (Bcrypt), and protected API routes.
-- **Real-time Logging**: Tracks the success or failure of every dispatched email directly in the Supabase PostgreSQL database.
+PayrollPro is a modern, full-stack Next.js web application designed to streamline the monthly payroll process. It empowers administrators to upload employee compensation data in bulk, automatically generates encrypted PDF payslips, and securely distributes them via email.
+
+> ⚠️ **Important Note on Email Delivery:** Because the system sends automated emails with PDF attachments, some strict email providers may flag them. **Please advise employees to check their spam/junk folders** if they do not see their payslip in their primary inbox.
+
+---
+
+## 🚀 Key Features
+
+- **Bulk CSV Processing:** Drag-and-drop CSV upload with instant client-side validation for seamless employee onboarding.
+- **Secure PDF Generation:** Automatically creates pixel-perfect PDF payslips using `pdfkit`. Every PDF is heavily encrypted and uniquely password-protected using employee-specific data.
+- **Automated Email Dispatch:** Integrates with SMTP (`nodemailer`) to reliably deliver generated payslips to hundreds of employees simultaneously.
+- **Responsive UI & Accessibility:** A highly premium interface featuring dynamic data charts, accessible high-contrast modes, and a fully mobile-responsive collapsible layout.
+- **Robust Authentication:** Secure custom JWT-based authentication system utilizing HttpOnly cookies and Bcrypt password hashing.
+- **Real-Time Auditing:** Tracks the success and failure states of all dispatched emails within the PostgreSQL database for total observability.
+- **One-Click Retries:** Failed email deliveries can be retried individually or in bulk directly from the dashboard.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Next.js 14 (App Router), React, Tailwind CSS, Recharts
+- **Backend:** Next.js API Routes, Node.js
+- **Database:** PostgreSQL (via Supabase), Prisma ORM
+- **Authentication:** Custom JWT (`jose` library), Bcrypt
+- **Utilities:** `pdfkit` (PDFs), `nodemailer` (SMTP), `papaparse` (CSV)
+
+---
+
+## 💻 Running Locally (Step-by-Step)
+
+Follow these steps to set up and run the project locally on your machine.
+
+### Prerequisites
+- **Node.js** (v18 or higher)
+- A **PostgreSQL** database (e.g., Supabase, Neon, or local Docker)
+- A **Gmail account** with an App Password (for SMTP email dispatch)
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/arjunajaygit/Payroll-Automation-.git
+cd Payroll-Automation-
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Configure Environment Variables
+Create a `.env` file in the root directory and add your secret keys:
+```env
+# Database Connections
+DATABASE_URL="postgresql://user:password@host:port/db?schema=public"
+DIRECT_URL="postgresql://user:password@host:port/db?schema=public"
+
+# Authentication
+JWT_SECRET="generate_a_random_secure_string_here"
+
+# Email Configuration
+GMAIL_USER="your_email@gmail.com"
+GMAIL_APP_PASSWORD="your_google_app_password"
+```
+
+### 4. Set up the Prisma Database
+Push the Prisma schema to your PostgreSQL database to create the necessary tables:
+```bash
+npx prisma db push
+```
+*(Optional)* You can view and manipulate your database using Prisma Studio:
+```bash
+npx prisma studio
+```
+
+### 5. Start the Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to view the application in your browser.
+
+---
 
 ## 📸 Screenshots
 
@@ -67,45 +141,7 @@ PayrollPro is a full-stack Next.js application designed to streamline the monthl
   <img src="public/screenshots/mobile/8.jpeg" width="32%" />
 </p>
 
-## 🏗️ Architecture & Engineering Decisions
+---
 
-### The Message Queue (Redis + BullMQ)
-The application was originally architected with a decoupled **Background Worker Queue** using **Upstash Redis** and **BullMQ**. 
-- In an enterprise environment, generating hundreds of PDFs and sending concurrent emails is a heavily I/O bound process. 
-- To prevent HTTP timeouts, the original architecture utilized a dedicated Node.js worker container that continuously polled Redis to process payroll jobs in the background, while the frontend utilized short-polling to update the UI progress bar.
-
-### Serverless Adaptation (Current Deployment)
-To accommodate the constraints of free-tier cloud hosting (Vercel's serverless timeouts and Render's outbound SMTP firewalls), the architecture was intelligently adapted:
-- The PDF generation and Email dispatch logic was migrated directly into the Next.js API route.
-- By leveraging `Promise.all` for high-concurrency execution, the application can securely process and dispatch small batches of employees synchronously within Vercel's 10-second serverless execution limit.
-- This demonstrates an understanding of both **Enterprise Queue Architectures** and **Serverless Constraints**.
-
-## 🛠️ Tech Stack
-- **Frontend**: Next.js 14 (App Router), React, Tailwind CSS, Lucide Icons, React Hot Toast
-- **Backend**: Next.js API Routes, Node.js
-- **Database**: PostgreSQL (hosted on Supabase), Prisma ORM
-- **Authentication**: JWT (jose), Bcrypt
-- **Utilities**: pdfkit (PDF generation), nodemailer (SMTP distribution), PapaParse (CSV parsing)
-
-## 💻 Running Locally
-
-1. Clone the repository and install dependencies:
-```bash
-npm install
-```
-
-2. Create a `.env` file with your credentials:
-```env
-DATABASE_URL="your_supabase_url"
-DIRECT_URL="your_supabase_direct_url"
-JWT_SECRET="your_jwt_secret"
-GMAIL_USER="your_email@gmail.com"
-GMAIL_APP_PASSWORD="your_google_app_password"
-```
-
-3. Start the development server:
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to view the application.
+## 🏗️ Architecture Note
+The application was originally designed with a dedicated background worker queue (Redis + BullMQ) for processing hundreds of I/O bound PDF generation jobs. To support free-tier serverless environments (like Vercel) and bypass their strict execution timeouts, the architecture was cleverly adapted to leverage high-concurrency `Promise.all` directly inside Next.js API routes—demonstrating strong understanding of both queue systems and serverless constraints.
