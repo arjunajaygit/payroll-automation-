@@ -109,8 +109,8 @@ export default function Dashboard() {
 
   const handleGenerateAndSend = async () => {
     setIsProcessing(true);
-    setJobState({ active: true, percent: 0, status: "Initializing background workers..." });
-    const loadingToast = toast.loading('Adding payroll to processing queue...');
+    setJobState({ active: true, percent: 50, status: "Processing payroll documents..." });
+    const loadingToast = toast.loading('Generating PDFs and dispatching emails...');
     try {
       const response = await fetch("/api/payroll", {
         method: "POST",
@@ -119,50 +119,21 @@ export default function Dashboard() {
       });
 
       if (!response.ok) {
-        toast.error('Failed to queue payroll.', { id: loadingToast });
+        toast.error('Failed to process payroll.', { id: loadingToast });
         setIsProcessing(false);
         setJobState(null);
         return;
       }
 
-      const data = await response.json();
-      const jobId = data.jobId;
+      await response.json();
 
-      toast.success('Added to processing queue!', { id: loadingToast });
-
-      // Poll progress every 1.5 seconds
-      const interval = setInterval(async () => {
-         const res = await fetch(`/api/payroll/status?jobId=${jobId}`);
-         if (res.ok) {
-           const statusData = await res.json();
-           
-           if (statusData.state === 'completed') {
-             clearInterval(interval);
-             setJobState({ active: false, percent: 100, status: "Completed successfully! ✅" });
-             toast.success("Background payroll processing complete!");
-             setTimeout(() => {
-                setPayroll([]);
-                setJobState(null);
-                setIsProcessing(false);
-             }, 3000);
-           } else if (statusData.state === 'failed') {
-             clearInterval(interval);
-             setJobState(null);
-             setIsProcessing(false);
-             toast.error(`Job failed: ${statusData.failedReason || 'Unknown error'}`);
-           } else {
-             const percent = statusData.progress?.percent || 0;
-             const statusStr = statusData.progress?.state || "Processing...";
-             setJobState({ active: true, percent, status: statusStr });
-           }
-         } else {
-           // Job not found or API error (e.g., evicted by Redis)
-           clearInterval(interval);
-           setJobState(null);
-           setIsProcessing(false);
-           toast.error("Lost connection to processing queue (Job evicted).");
-         }
-      }, 1500);
+      setJobState({ active: false, percent: 100, status: "Completed successfully! ✅" });
+      toast.success("All payroll documents sent successfully!", { id: loadingToast });
+      setTimeout(() => {
+         setPayroll([]);
+         setJobState(null);
+         setIsProcessing(false);
+      }, 3000);
 
     } catch (error) {
       console.error(error);
