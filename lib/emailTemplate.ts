@@ -16,7 +16,7 @@ export function buildPayslipEmailHtml(employeeName: string, month: string, year:
             For security reasons, all salary slips are encrypted.
           </p>
           <p style="margin: 0; font-size: 14px; color: #166534; line-height: 1.5;">
-            <strong>Password Hint:</strong> The first 4 letters of your first name (in uppercase) followed by your birth year.
+            <strong>Password Hint:</strong> The first 4 letters of your first name (or your full first name if shorter), in uppercase, followed by your birth year.
           </p>
         </div>
 
