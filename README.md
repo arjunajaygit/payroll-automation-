@@ -1,4 +1,4 @@
-# PayrollPro: Automated Payroll & Document Distribution System
+# PayrollPro: Automated Payroll Distribution System
 
 **[View Live Deployment](https://payrolpro-iota.vercel.app/)** 
 
