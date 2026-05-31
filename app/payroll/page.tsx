@@ -127,7 +127,7 @@ export default function Dashboard() {
 
       await response.json();
 
-      setJobState({ active: false, percent: 100, status: "Completed successfully! ✅" });
+      setJobState({ active: false, percent: 100, status: "Completed successfully!" });
       toast.success("All payroll documents sent successfully!", { id: loadingToast });
       setTimeout(() => {
          setPayroll([]);
@@ -185,7 +185,12 @@ export default function Dashboard() {
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
           {employeeDB.length > 0 ? (
             <div className="flex justify-between items-center">
-              <p className="text-emerald-600 font-medium text-sm">✅ Master Database Synchronized ({employeeDB.length} active records)</p>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-sm shadow-emerald-500/30">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>
+                </div>
+                <p className="text-emerald-600 font-medium text-sm">Master Database Synchronized ({employeeDB.length} active records)</p>
+              </div>
               <Link href="/employees" className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Manage Records</Link>
             </div>
           ) : (
@@ -255,8 +260,11 @@ export default function Dashboard() {
               {jobState.percent < 100 ? (
                 <div className="w-10 h-10 border-[3px] border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-emerald-500 animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] opacity-20"></div>
+                  <div className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <svg className="w-6 h-6 animate-[bounce_0.5s_ease-out]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                  </div>
                 </div>
               )}
             </div>

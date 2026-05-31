@@ -82,7 +82,7 @@ export default function EmployeeDirectory() {
         });
 
         if (response.ok) {
-          setJobState({ active: false, percent: 100, status: "Completed successfully! ✅" });
+          setJobState({ active: false, percent: 100, status: "Completed successfully!" });
           toast.success("Employee database synchronized successfully!", { id: loadingToast });
           fetchEmployees();
           setErrors([]);
@@ -165,8 +165,11 @@ export default function EmployeeDirectory() {
               {jobState.percent < 100 ? (
                 <div className="w-10 h-10 border-[3px] border-blue-600 border-t-transparent rounded-full animate-spin"></div>
               ) : (
-                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-4 border-emerald-500 animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] opacity-20"></div>
+                  <div className="w-10 h-10 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <svg className="w-6 h-6 animate-[bounce_0.5s_ease-out]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
+                  </div>
                 </div>
               )}
             </div>
