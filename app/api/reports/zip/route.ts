@@ -69,7 +69,7 @@ export async function GET(request: Request) {
       compressionOptions: { level: 5 }
     });
 
-    return new NextResponse(zipData, {
+    return new NextResponse(zipData as any, {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="payslips_${month}_${year}.zip"`,
