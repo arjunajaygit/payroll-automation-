@@ -74,7 +74,7 @@ export async function POST(request: Request) {
             status: "Sent",
             month: employee.month,
             year: employee.year
-          },
+          } as any,
         });
 
         processedCount++;
@@ -90,7 +90,7 @@ export async function POST(request: Request) {
             errorMessage: err instanceof Error ? err.message : String(err),
             month: employee.month,
             year: employee.year
-          },
+          } as any,
         });
       }
     }));

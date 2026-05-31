@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     // @ts-ignore: Bypassing stale TS server cache for new schema fields
     await prisma.emailLog.update({
       where: { id: logId },
-      data: { status: "Sent", errorMessage: null, sentAt: new Date(), month: salary.month, year: salary.year }
+      data: { status: "Sent", errorMessage: null, sentAt: new Date(), month: salary.month, year: salary.year } as any
     });
 
     return NextResponse.json({ success: true, message: "Email resent successfully" });
