@@ -41,11 +41,9 @@ export default function VerifyPage() {
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 font-sans">
       <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100 relative">
         
-        {}
         <div className="absolute top-0 left-0 w-full h-48 bg-gradient-to-br from-emerald-400 to-emerald-600 opacity-10"></div>
 
         <div className="p-8 flex flex-col items-center relative z-10">
-          {}
           <div className="flex items-center gap-2 mb-8 self-center">
             <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -61,7 +59,6 @@ export default function VerifyPage() {
           ) : (
             <div className="w-full flex flex-col items-center animate-in fade-in zoom-in duration-500">
               
-              {}
               <div className="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center mb-6 relative">
                 <div className="absolute inset-0 rounded-full border-4 border-emerald-500 animate-[ping_1.5s_cubic-bezier(0,0,0.2,1)_infinite] opacity-20"></div>
                 <div className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
@@ -74,7 +71,6 @@ export default function VerifyPage() {
               <h1 className="text-2xl font-bold text-slate-900 text-center mb-1">Verified Payroll</h1>
               <p className="text-sm text-emerald-600 font-semibold mb-8">Document Authenticity Confirmed</p>
 
-              {}
               <div className="w-full bg-slate-50 rounded-2xl p-5 border border-slate-100 space-y-4">
                 <div className="flex justify-between items-center border-b border-slate-200 pb-3">
                   <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Employee Name</span>

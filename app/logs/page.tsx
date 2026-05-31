@@ -87,7 +87,6 @@ export default function EmailLogs() {
     <div className="min-h-screen p-8 bg-slate-50 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        {}
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Distribution Logs</h1>
@@ -95,7 +94,6 @@ export default function EmailLogs() {
           </div>
         </div>
 
-        {}
         {!loading && logs.length > 0 && (
           <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row gap-4 items-end">
             <div className="flex-1 w-full">
@@ -229,7 +227,6 @@ export default function EmailLogs() {
         )}
       </div>
 
-      {}
       {previewLog && (
         <PayslipPreview 
           employeeId={previewLog.employeeId} 

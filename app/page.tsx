@@ -1,8 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import DashboardClient from "./DashboardClient";
 import { requireAuth } from "../lib/auth";
-
-const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 
@@ -11,33 +9,28 @@ export default async function DashboardPage() {
     const session = await requireAuth();
     const adminId = session.userId;
 
-    const totalHeadcount = await prisma.employee.count({
-      where: { adminId }
-    });
-
-    const latestSalary = await prisma.salary.findFirst({
-      where: { adminId },
-      orderBy: { createdAt: 'desc' }
-    });
-
     const date = new Date();
     const currentMonth = date.toLocaleString('default', { month: 'long' });
     const currentYear = date.getFullYear();
 
-    const currentMonthSalaries = await prisma.salary.findMany({
-      where: { adminId, month: currentMonth, year: currentYear },
-      include: { employee: true }
-    });
+    const [totalHeadcount, currentMonthSalaries, sentCount, totalEmailCount, trendData] = await Promise.all([
+      prisma.employee.count({ where: { adminId } }),
+      prisma.salary.findMany({
+        where: { adminId, month: currentMonth, year: currentYear },
+        include: { employee: true },
+      }),
+      prisma.emailLog.count({ where: { adminId, status: "Sent" } }),
+      prisma.emailLog.count({ where: { adminId } }),
+      prisma.salary.groupBy({
+        by: ['month', 'year'],
+        where: { adminId },
+        _sum: { netSalary: true },
+      }),
+    ]);
 
     const currentMonthPayroll = currentMonthSalaries.reduce((sum, s) => sum + s.netSalary, 0);
     const averageSalary = totalHeadcount > 0 ? currentMonthPayroll / totalHeadcount : 0;
-
-    const emailLogs = await prisma.emailLog.findMany({
-      where: { adminId }
-    });
-    const totalEmails = emailLogs.length;
-    const sentEmails = emailLogs.filter(log => log.status === "Sent").length;
-    const emailSuccessRate = totalEmails > 0 ? Math.round((sentEmails / totalEmails) * 100) : 0;
+    const emailSuccessRate = totalEmailCount > 0 ? Math.round((sentCount / totalEmailCount) * 100) : 0;
 
     const deptCosts: Record<string, number> = {};
     currentMonthSalaries.forEach(s => {
@@ -48,12 +41,6 @@ export default async function DashboardPage() {
     const departmentCostBreakdown = Object.entries(deptCosts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
-
-    const trendData = await prisma.salary.groupBy({
-      by: ['month', 'year'],
-      where: { adminId },
-      _sum: { netSalary: true },
-    });
 
     const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
     

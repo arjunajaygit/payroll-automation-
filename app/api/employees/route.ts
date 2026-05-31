@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../../lib/prisma";
 import { requireAuth } from "../../../lib/auth";
-
-const prisma = new PrismaClient();
 
 const monthOrder = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -14,19 +12,14 @@ export async function GET() {
     const employees = await prisma.employee.findMany({
       where: { adminId },
       include: {
-        salaries: true
-      }
+        salaries: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
+      },
     });
 
-    const sortedEmployees = employees.map(emp => {
-      const sortedSalaries = emp.salaries.sort((a, b) => {
-        if (a.year !== b.year) return b.year - a.year;
-        return monthOrder.indexOf(b.month) - monthOrder.indexOf(a.month);
-      });
-      return { ...emp, salaries: sortedSalaries };
-    });
-
-    return NextResponse.json(sortedEmployees);
+    return NextResponse.json(employees);
   } catch (error) {
     console.error("Fetch employees error:", error);
     return NextResponse.json({ error: "Failed to fetch employees" }, { status: 500 });

@@ -50,7 +50,6 @@ export default function PayslipPreview({
           </div>
         </div>
 
-        {}
         <div className="flex-1 bg-slate-100 p-5">
           <iframe
             src={pdfUrl}

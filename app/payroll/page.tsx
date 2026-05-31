@@ -160,7 +160,6 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
         
-        {}
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Process Payroll</h1>
@@ -176,7 +175,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {}
         <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
           {employeeDB.length > 0 ? (
             <div className="flex justify-between items-center">
@@ -196,7 +194,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {}
         {step === 1 && (
           <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
             <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
@@ -215,7 +212,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {}
         {step === 2 && (
           <div className={`p-6 bg-white rounded-2xl shadow-sm border ${payroll.length > 0 ? 'border-slate-200' : 'border-slate-200'}`}>
             <div className="flex justify-between items-center mb-4">
@@ -236,7 +232,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {}
         {errors.length > 0 && (
           <div className="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-200">
             <strong className="text-sm font-semibold">Validation Errors:</strong>
@@ -246,7 +241,6 @@ export default function Dashboard() {
           </div>
         )}
 
-        {}
         {jobState && (
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-6">
             <div className="flex justify-center items-center mb-4">

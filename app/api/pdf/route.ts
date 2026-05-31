@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
 import { generateSecurePDF } from "@/lib/pdf";
+import { getFontBuffers } from "@/lib/fonts";
 import { requireAuth } from "../../../lib/auth";
-
-const prisma = new PrismaClient();
 
 export async function GET(request: Request) {
   try {
@@ -49,19 +48,13 @@ export async function GET(request: Request) {
       year: salary.year
     };
 
-    const [fontRes, boldFontRes] = await Promise.all([
-      fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Regular.ttf"),
-      fetch("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.66/fonts/Roboto/Roboto-Medium.ttf")
-    ]);
-
-    const fontBuffer = Buffer.from(await fontRes.arrayBuffer());
-    const boldFontBuffer = Buffer.from(await boldFontRes.arrayBuffer());
+    const fonts = await getFontBuffers();
 
     const host = request.headers.get("host") || "localhost:3000";
     const protocol = host.includes("localhost") ? "http" : "https";
     const baseUrl = `${protocol}://${host}`;
 
-    const pdfBuffer = await generateSecurePDF(mergedEmployee, fontBuffer, boldFontBuffer, !isPreview, baseUrl);
+    const pdfBuffer = await generateSecurePDF(mergedEmployee, fonts.regular, fonts.bold, !isPreview, baseUrl);
 
     const headers = new Headers();
     headers.set("Content-Type", "application/pdf");

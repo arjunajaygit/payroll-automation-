@@ -118,7 +118,6 @@ export default function EmployeeDirectory() {
     <div className="min-h-screen bg-slate-50 p-8 text-slate-900">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        {}
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Employee Database</h1>
@@ -129,7 +128,6 @@ export default function EmployeeDirectory() {
           </Link>
         </div>
 
-        {}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
           <div className="flex justify-between items-center mb-4">
             <div>
@@ -148,7 +146,6 @@ export default function EmployeeDirectory() {
           </div>
         </div>
 
-        {}
         {errors.length > 0 && (
           <div className="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-200">
             <strong className="text-sm font-semibold">Validation Errors:</strong>
@@ -158,7 +155,6 @@ export default function EmployeeDirectory() {
           </div>
         )}
 
-        {}
         {jobState && (
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 text-center space-y-6">
             <div className="flex justify-center items-center mb-4">
@@ -190,7 +186,6 @@ export default function EmployeeDirectory() {
           </div>
         )}
 
-        {}
         {!jobState && employees.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-16 text-center">
             <div className="flex flex-col items-center">

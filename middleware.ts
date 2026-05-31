@@ -4,7 +4,7 @@ import { jwtVerify } from "jose";
 const secretKey = process.env.JWT_SECRET || "default_super_secret_key_change_me_in_production";
 const key = new TextEncoder().encode(secretKey);
 
-const protectedRoutes = ["/", "/payroll", "/employees", "/logs"];
+const protectedRoutes = ["/", "/payroll", "/employees", "/logs", "/salary"];
 const publicRoutes = ["/login", "/signup"];
 
 export async function middleware(req: NextRequest) {

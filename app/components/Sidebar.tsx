@@ -32,8 +32,6 @@ export default function Sidebar() {
   return (
     
     <aside className="w-64 bg-gradient-to-b from-slate-900 via-blue-900 to-indigo-900 flex flex-col h-screen fixed left-0 top-0 border-r border-indigo-500/20 shadow-xl z-50">
-      
-      {}
       <div className="p-6 flex items-center gap-2 border-b border-white/10">
         <svg className="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -41,7 +39,6 @@ export default function Sidebar() {
         <span className="font-extrabold text-2xl text-white tracking-tight">PayrollPro</span>
       </div>
 
-      {}
       <nav className="flex-1 px-4 space-y-2 mt-6 overflow-y-auto custom-scrollbar">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -64,7 +61,6 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {}
       <div className="p-4 border-t border-white/10 bg-black/10 flex flex-col gap-2">
         <button
           onClick={() => setShowAccessibility(true)}
