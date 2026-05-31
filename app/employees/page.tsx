@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { validateEmployeeCSV } from "../../lib/csvValidation";
@@ -37,17 +38,17 @@ export default function EmployeeDirectory() {
   }, []);
 
   const downloadEmployeeSample = () => {
-    const csvContent = "data:text/csv;charset=utf-8,employeeId,name,email,designation,birthYear\nEMP001,Arjun,arjun@example.com,Software Engineer,2003\nEMP002,Rahul,rahul@example.com,UI Designer,2002";
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "employees_master.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    const data = [
+      { employeeId: "EMP001", name: "Arjun", email: "arjun@example.com", designation: "Software Engineer", birthYear: 2003 },
+      { employeeId: "EMP002", name: "Rahul", email: "rahul@example.com", designation: "UI Designer", birthYear: 2002 }
+    ];
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Employees");
+    XLSX.writeFile(wb, "employees_master.xlsx");
   };
 
-  const onDropMaster = (acceptedFiles: File[], fileRejections: any[]) => {
+  const onDropMaster = async (acceptedFiles: File[], fileRejections: any[]) => {
     setErrors([]);
     
     if (fileRejections.length > 0) {
@@ -60,46 +61,70 @@ export default function EmployeeDirectory() {
 
     if (acceptedFiles.length === 0) return;
 
-    Papa.parse(acceptedFiles[0], {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: async (results) => {
-        const validation = validateEmployeeCSV(results.data);
-        
-        if (!validation.isValid) {
-          setErrors(validation.errors);
-          return;
-        }
+    const file = acceptedFiles[0];
+    const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
 
-        setJobState({ active: true, percent: 50, status: "Synchronizing database records..." });
-        const loadingToast = toast.loading('Uploading and validating employee data...');
+    const processData = async (data: any[]) => {
+      const validation = validateEmployeeCSV(data);
+      
+      if (!validation.isValid) {
+        setErrors(validation.errors);
+        return;
+      }
 
-        const response = await fetch("/api/employees", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ employees: validation.data }),
-        });
+      setJobState({ active: true, percent: 50, status: "Synchronizing database records..." });
+      const loadingToast = toast.loading('Uploading and validating employee data...');
 
-        if (response.ok) {
-          setJobState({ active: false, percent: 100, status: "Completed successfully!" });
-          toast.success("Employee database synchronized successfully!", { id: loadingToast });
-          fetchEmployees();
-          setErrors([]);
-          setTimeout(() => {
-             setJobState(null);
-          }, 3000);
-        } else {
-          toast.error("Failed to synchronize database. Please verify your file format.", { id: loadingToast });
-          setJobState(null);
-        }
-      },
-    });
+      const response = await fetch("/api/employees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ employees: validation.data }),
+      });
+
+      if (response.ok) {
+        setJobState({ active: false, percent: 100, status: "Completed successfully!" });
+        toast.success("Employee database synchronized successfully!", { id: loadingToast });
+        fetchEmployees();
+        setErrors([]);
+        setTimeout(() => {
+           setJobState(null);
+        }, 3000);
+      } else {
+        toast.error("Failed to synchronize database. Please verify your file format.", { id: loadingToast });
+        setJobState(null);
+      }
+    };
+
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet);
+        processData(json);
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      Papa.parse(file, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          processData(results.data);
+        },
+      });
+    }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop: onDropMaster, 
-    accept: { "text/csv": [".csv"] },
+    accept: { 
+      "text/csv": [".csv"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+      "application/vnd.ms-excel": [".xls"]
+    },
     maxSize: 5242880
   });
 
@@ -132,7 +157,7 @@ export default function EmployeeDirectory() {
           <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="text-sm font-semibold text-slate-700">Synchronize Employee Database</h2>
-              <p className="text-xs text-slate-400 mt-1">Upload a master CSV file to onboard personnel or update existing records. Maximum size: 5MB.</p>
+              <p className="text-xs text-slate-400 mt-1">Upload a master CSV or Excel (.xlsx) file to onboard personnel or update existing records. Maximum size: 5MB.</p>
             </div>
             <button onClick={downloadEmployeeSample} className="text-xs text-blue-600 hover:text-blue-700 font-medium transition">Download Template</button>
           </div>
@@ -140,7 +165,7 @@ export default function EmployeeDirectory() {
             <input {...getInputProps()} />
             <div className="flex flex-col items-center gap-2">
               <svg className="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-              <p className="text-sm text-slate-500 font-medium">{isDragActive ? "Release to upload..." : "Drag and drop your employees_master.csv file here"}</p>
+              <p className="text-sm text-slate-500 font-medium">{isDragActive ? "Release to upload..." : "Drag and drop your employees_master.xlsx or .csv file here"}</p>
               <p className="text-xs text-slate-400">or click to browse files</p>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useDropzone } from "react-dropzone";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 import toast from "react-hot-toast";
 import { validateSalaryCSV } from "../../lib/csvValidation";
 
@@ -62,14 +63,14 @@ export default function Dashboard() {
   };
 
   const downloadSalarySample = () => {
-    const csvContent = "data:text/csv;charset=utf-8,employeeId,baseSalary,hra,allowances,deductions,month,year\nEMP001,50000,10000,5000,2000,May,2026\nEMP002,45000,8000,3000,1000,May,2026";
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "salary_may_2026.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    const data = [
+      { employeeId: "EMP001", baseSalary: 50000, hra: 10000, allowances: 5000, deductions: 2000, month: "May", year: 2026 },
+      { employeeId: "EMP002", baseSalary: 45000, hra: 8000, allowances: 3000, deductions: 1000, month: "May", year: 2026 }
+    ];
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Salary");
+    XLSX.writeFile(wb, "salary_template.xlsx");
   };
 
   const onDropSalary = (acceptedFiles: File[], fileRejections: any[]) => {
@@ -85,22 +86,42 @@ export default function Dashboard() {
 
     if (acceptedFiles.length === 0) return;
 
-    Papa.parse(acceptedFiles[0], {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const validation = validateSalaryCSV(results.data, employeeDB);
+    const file = acceptedFiles[0];
+    const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls");
 
-        if (!validation.isValid) {
-          setErrors(validation.errors);
-          setPayroll([]);
-          return;
-        }
+    const processData = (data: any[]) => {
+      const validation = validateSalaryCSV(data, employeeDB);
 
-        setPayroll(validation.data as MergedPayroll[]);
-      },
-    });
+      if (!validation.isValid) {
+        setErrors(validation.errors);
+        setPayroll([]);
+        return;
+      }
+
+      setPayroll(validation.data as MergedPayroll[]);
+    };
+
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const data = e.target?.result;
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(worksheet);
+        processData(json);
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      Papa.parse(file, {
+        header: true,
+        dynamicTyping: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          processData(results.data);
+        },
+      });
+    }
   };
 
   const handleGenerateAndSend = async () => {
@@ -141,7 +162,11 @@ export default function Dashboard() {
 
   const dropzoneSalary = useDropzone({ 
     onDrop: onDropSalary, 
-    accept: { "text/csv": [".csv"] },
+    accept: { 
+      "text/csv": [".csv"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+      "application/vnd.ms-excel": [".xls"]
+    },
     maxSize: 5242880 
   });
 
@@ -227,7 +252,7 @@ export default function Dashboard() {
             
             <div {...dropzoneSalary.getRootProps()} className={`border-2 border-dashed rounded-xl text-center cursor-pointer transition-all ${payroll.length > 0 ? 'p-4 border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100' : 'p-8 border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`}>
               <input {...dropzoneSalary.getInputProps()} />
-              <p className="text-sm">{payroll.length > 0 ? "Drag and drop an updated salary CSV file here to overwrite current data" : "Drag and drop your monthly salary CSV file here"}</p>
+              <p className="text-sm">{payroll.length > 0 ? "Drag and drop an updated salary Excel or CSV file here to overwrite current data" : "Drag and drop your monthly salary .xlsx or .csv file here"}</p>
             </div>
           </div>
         )}

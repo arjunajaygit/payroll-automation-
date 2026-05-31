@@ -27,7 +27,8 @@
     "recharts": "^3.8.1",
     "resend": "^6.12.4",
     "tsx": "^4.22.3",
-    "uuid": "^14.0.0"
+    "uuid": "^14.0.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
