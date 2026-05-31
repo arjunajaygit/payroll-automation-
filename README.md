@@ -9,6 +9,38 @@ PayrollPro is a full-stack Next.js application designed to streamline the monthl
 - **Custom Authentication**: Fully implemented JWT-based authentication system with secure HttpOnly cookies, password hashing (Bcrypt), and protected API routes.
 - **Real-time Logging**: Tracks the success or failure of every dispatched email directly in the Supabase PostgreSQL database.
 
+## 📸 Screenshots
+
+### Dashboard
+![Dashboard](public/screenshots/1.png)
+
+### Run Payroll
+![Run Payroll](public/screenshots/2.png)
+
+### Employee Database
+![Employee Database](public/screenshots/3.png)
+
+### Salary Records
+![Salary Records](public/screenshots/4.png)
+
+### Email Logs
+![Email Logs](public/screenshots/5.png)
+
+### Export Reports
+![Export Reports](public/screenshots/6.png)
+
+### Accessibility Settings
+![Accessibility Settings](public/screenshots/7.png)
+
+### Secure Payslip Preview
+![Secure Payslip Preview](public/screenshots/8.png)
+
+### Verified Payroll Authenticity (Mobile)
+![Verified Payroll Authenticity](public/screenshots/9.jpeg)
+
+### Automated Email Delivery (Mobile)
+![Automated Email Delivery](public/screenshots/10.jpeg)
+
 ## 🏗️ Architecture & Engineering Decisions
 
 ### The Message Queue (Redis + BullMQ)
