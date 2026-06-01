@@ -135,7 +135,9 @@ export const validateSalaryCSV = (rows: any[], masterDB: any[]): ValidationResul
       errors.push(`Row ${rowNum}: Employee ID (${employeeId}) not found in Master Database.`);
     }
 
-    if (!validMonths.includes(month.toString().trim())) {
+    const monthStr = month.toString().trim();
+    const matchedMonth = validMonths.find(m => m.toLowerCase() === monthStr.toLowerCase());
+    if (!matchedMonth) {
       errors.push(`Row ${rowNum}: Invalid month (${month}).`);
     }
 
@@ -162,7 +164,7 @@ export const validateSalaryCSV = (rows: any[], masterDB: any[]): ValidationResul
         hra: Number(hra),
         allowances: Number(allowances),
         deductions: Number(deductions),
-        month: month.toString().trim(),
+        month: matchedMonth || monthStr,
         year: y,
         netSalary,
       });
