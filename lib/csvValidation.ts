@@ -135,7 +135,19 @@ export const validateSalaryCSV = (rows: any[], masterDB: any[]): ValidationResul
       errors.push(`Row ${rowNum}: Employee ID (${employeeId}) not found in Master Database.`);
     }
 
-    const monthStr = month.toString().trim();
+    let monthStr = month.toString().trim();
+    
+    // Handle Excel serial date numbers (e.g., 46174)
+    const monthNum = Number(month);
+    if (!isNaN(monthNum) && monthNum > 20000) {
+      const date = new Date((monthNum - 25569) * 86400 * 1000);
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      monthStr = monthNames[date.getMonth()];
+    } else if (!isNaN(monthNum) && monthNum >= 1 && monthNum <= 12) {
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      monthStr = monthNames[monthNum - 1];
+    }
+
     const matchedMonth = validMonths.find(m => m.toLowerCase() === monthStr.toLowerCase());
     if (!matchedMonth) {
       errors.push(`Row ${rowNum}: Invalid month (${month}).`);
