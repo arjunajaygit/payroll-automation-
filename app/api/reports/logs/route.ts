@@ -20,24 +20,15 @@ export async function GET(request: Request) {
       where: { adminId },
       orderBy: { sentAt: "desc" },
       include: {
-        employee: {
-          include: {
-            salaries: {
-              orderBy: { createdAt: 'desc' },
-              take: 1
-            }
-          }
-        }
+        employee: true
       }
     });
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
     const mappedLogs = logs.map(log => {
-      const latestSalary = log.employee.salaries[0];
-      
-      const fallbackMonth = latestSalary ? latestSalary.month : monthNames[log.sentAt.getMonth()];
-      const fallbackYear = latestSalary ? latestSalary.year : log.sentAt.getFullYear();
+      const fallbackMonth = monthNames[log.sentAt.getMonth()];
+      const fallbackYear = log.sentAt.getFullYear();
       
       return {
         id: log.id,
