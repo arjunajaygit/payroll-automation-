@@ -19,6 +19,8 @@ export default function SalaryTableClient({ initialSalaries }: { initialSalaries
   }, [initialSalaries]);
 
   const filteredSalaries = useMemo(() => {
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    
     return initialSalaries.filter(record => {
       const matchesSearch = 
         record.employee.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -28,6 +30,14 @@ export default function SalaryTableClient({ initialSalaries }: { initialSalaries
       const matchesYear = selectedYear === "All" || record.year.toString() === selectedYear.toString();
 
       return matchesSearch && matchesMonth && matchesYear;
+    }).sort((a, b) => {
+      if (a.year !== b.year) return b.year - a.year;
+      
+      const monthA = monthNames.indexOf(a.month);
+      const monthB = monthNames.indexOf(b.month);
+      if (monthA !== monthB) return monthB - monthA;
+      
+      return a.employeeId.localeCompare(b.employeeId);
     });
   }, [initialSalaries, searchTerm, selectedMonth, selectedYear]);
 
